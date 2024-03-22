@@ -1,2 +1,15 @@
 server:
   port: 9856
+spring:
+  security:
+    jwt:
+      key: abcdefg
+      expire: 7
+    user:
+      name: user
+      password: 123456
+#  data:
+#    redis:
+#      host: localhost
+#      port: 6379
+#      database: 0
