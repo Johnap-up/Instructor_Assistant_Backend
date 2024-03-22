@@ -5,9 +5,15 @@ spring:
     jwt:
       key: abcdefg
       expire: 7
-    user:
-      name: user
-      password: 123456
+#    user:
+#      name: user
+#      password: 123456
+  datasource:
+    url: jdbc:mysql://localhost:3306/instructor_assistant
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
 #  data:
 #    redis:
 #      host: localhost

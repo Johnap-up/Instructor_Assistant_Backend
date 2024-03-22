@@ -4,8 +4,10 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.entity.RestBean;
+import org.example.entity.dto.Account;
 import org.example.entity.vo.response.AuthorizeVO;
 import org.example.filter.JwtAuthorizedFilter;
+import org.example.service.AccountService;
 import org.example.utils.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +31,9 @@ public class SecurityConfiguration {
     private JwtUtil jwtUtil;
     @Resource
     JwtAuthorizedFilter jwtAuthorizedFilter;
+    @Resource
+    AccountService service;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
@@ -79,13 +84,13 @@ public class SecurityConfiguration {
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json");
         User user = (User) authentication.getPrincipal();
-        String token = jwtUtil.createJwt(user);
 
-        AuthorizeVO authorizeVO = new AuthorizeVO();
-        authorizeVO.setExpire(jwtUtil.getExpireTime());
-        authorizeVO.setRole("");
-        authorizeVO.setToken(token);
-        authorizeVO.setUsername(user.getUsername());
+        Account account = service.findByUsernameOrEmail(user.getUsername());
+        String token = jwtUtil.createJwt(user, account.getId(), account.getUsername());
+        AuthorizeVO authorizeVO = account.asViewObject(AuthorizeVO.class, authorizeVO1 -> {
+            authorizeVO1.setExpire(jwtUtil.getExpireTime());
+            authorizeVO1.setToken(token);
+        });
         final PrintWriter writer = response.getWriter();
 
         writer.write(RestBean.success(authorizeVO).asJsonString());

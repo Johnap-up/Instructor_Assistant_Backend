@@ -73,13 +73,13 @@ public class JwtUtil {
     }
 
     //根据用户信息创建Jwt令牌
-    public String createJwt(UserDetails user){
+    public String createJwt(UserDetails user, int id, String username){
         Algorithm algorithm = Algorithm.HMAC256(key);
         Date expireTime = getExpireTime();
         return JWT.create()
                 .withJWTId(UUID.randomUUID().toString())
-                .withClaim("name", user.getUsername())  //配置JWT自定义信息
-                .withClaim("id", 123)
+                .withClaim("name", username)  //配置JWT自定义信息
+                .withClaim("id", id)
                 .withClaim("authorities", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
                 .withExpiresAt(expireTime)  //设置过期时间
                 .withIssuedAt(new Date())    //设置创建创建时间
