@@ -38,11 +38,10 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/api/auth/**").permitAll();
+                    auth.requestMatchers("/api/auth/**", "/error").permitAll();     //error是给错误页面放行，如在发送验证码时邮箱输入错误那么就会转发到error上去
                     auth.requestMatchers(new AntPathRequestMatcher("/static/**")).permitAll();
                     auth.anyRequest().authenticated();
                 })
-                .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(conf -> conf
                         .loginProcessingUrl("/api/auth/login")
                         .failureHandler(this::onAuthenticationFailure)
@@ -52,14 +51,16 @@ public class SecurityConfiguration {
                         .logoutUrl("/api/auth/logout")
                         .logoutSuccessHandler(this::onLogoutSuccess)
                 )
+
+                .exceptionHandling(conf -> conf
+                        .accessDeniedHandler(this::onForbiddenHandle)
+                        .authenticationEntryPoint(this::onUnauthorized)
+                )
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(conf -> conf
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .addFilterBefore(jwtAuthorizedFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(conf -> conf
-                        .authenticationEntryPoint(this::onUnauthorized)
-                        .accessDeniedHandler(this::onForbiddenHandle)
-                )
                 .build();
     }
     public void onForbiddenHandle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
@@ -84,7 +85,6 @@ public class SecurityConfiguration {
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json");
         User user = (User) authentication.getPrincipal();
-
         Account account = service.findByUsernameOrEmail(user.getUsername());
         String token = jwtUtil.createJwt(user, account.getId(), account.getUsername());
         AuthorizeVO authorizeVO = account.asViewObject(AuthorizeVO.class, authorizeVO1 -> {
@@ -100,6 +100,7 @@ public class SecurityConfiguration {
         response.setContentType("application/json");
         final PrintWriter writer = response.getWriter();
         String authorization = request.getHeader("Authorization");
+        System.out.println(authorization);
         if (jwtUtil.invalidateJwt(authorization)){
             writer.write(RestBean.success("退出成功").asJsonString());
         }else {

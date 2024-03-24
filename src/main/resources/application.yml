@@ -2,17 +2,25 @@ server:
   port: 9856
 spring:
   security:
+    filter:
+      order: -100
     jwt:
       key: abcdefg
       expire: 7
-#    user:
-#      name: user
-#      password: 123456
   datasource:
     url: jdbc:mysql://localhost:3306/instructor_assistant
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
+  mail:
+    host: smtp.163.com
+    username: tukumij@163.com
+    password: DJLANCLVJRYTODAK
+  rabbitmq:
+    addresses: localhost
+    username: admin
+    password: admin
+    virtual-host: /instructor_assistant
 
 #  data:
 #    redis:
