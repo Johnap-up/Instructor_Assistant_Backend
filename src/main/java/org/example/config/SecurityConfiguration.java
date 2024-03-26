@@ -51,7 +51,6 @@ public class SecurityConfiguration {
                         .logoutUrl("/api/auth/logout")
                         .logoutSuccessHandler(this::onLogoutSuccess)
                 )
-
                 .exceptionHandling(conf -> conf
                         .accessDeniedHandler(this::onForbiddenHandle)
                         .authenticationEntryPoint(this::onUnauthorized)
