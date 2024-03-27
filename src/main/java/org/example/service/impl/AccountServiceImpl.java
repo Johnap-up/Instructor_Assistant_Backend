@@ -133,4 +133,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         boolean update = this.update().eq("email", email).set("password", password).update();
         return update ? null : "内部错误，请联系管理员";
     }
+
+    @Override
+    public Account findAccountById(int id) {
+        return this.query().eq("id", id).one();
+    }
 }

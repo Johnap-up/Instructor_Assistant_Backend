@@ -15,8 +15,9 @@ public class FlowUtil {
         if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(key))){
             return false;
         }else {
+            System.out.println("ttl");
             stringRedisTemplate.opsForValue()
-                    .set(key, "", blockTime, TimeUnit.SECONDS);
+                    .set(key, "0", blockTime, TimeUnit.SECONDS);
             return true;
         }
     }

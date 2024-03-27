@@ -21,4 +21,6 @@ public class ConstUtil {
     public static final String VERIFY_EMAIL_RESET_CODE = "verify:email:reset:code:";
 
     public static final int VERIFY_BLOCK_TIME = 60;
+
+    public static final String ATTR_USER_ID = "id";
 }
