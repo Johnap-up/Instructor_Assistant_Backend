@@ -21,6 +21,10 @@ spring:
     username: admin
     password: admin
     virtual-host: /instructor_assistant
+  minio:
+    endpoint: 'http://47.101.203.178:9000'
+    username: 'minio'
+    password: 'password'
 
 #  data:
 #    redis:
