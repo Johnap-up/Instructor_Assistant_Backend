@@ -100,7 +100,7 @@ public class SecurityConfiguration {
         response.setContentType("application/json");
         final PrintWriter writer = response.getWriter();
         String authorization = request.getHeader("Authorization");
-        System.out.println(authorization);
+        System.out.println("SecurityConfiguration: " + authorization);
         if (jwtUtil.invalidateJwt(authorization)){
             writer.write(RestBean.success("退出成功").asJsonString());
         }else {

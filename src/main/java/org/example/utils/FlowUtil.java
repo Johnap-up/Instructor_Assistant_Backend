@@ -11,7 +11,7 @@ public class FlowUtil {
     @Resource
     StringRedisTemplate stringRedisTemplate;
 
-    public boolean limitOnceCheck(String key, int blockTime){
+    public boolean limitOnceCheck(String key, int blockTime){                       //60s后重发验证码
         if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(key))){
             return false;
         }else {

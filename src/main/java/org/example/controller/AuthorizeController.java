@@ -23,7 +23,7 @@ public class AuthorizeController {
     AccountService accountService;
     @GetMapping("/ask-code")
     public RestBean<Void> askVerifyCode(@RequestParam @Email String email,
-                                          @RequestParam @Pattern(regexp = "(reset|register)") String type,
+                                          @RequestParam @Pattern(regexp = "(reset|register|modify)") String type,
                                           HttpServletRequest request){
         return this.messageHandle(()->accountService.registerEmailVerifyCode(type, email, request.getRemoteAddr()));    //与下面的等价
 //        String message = accountService.registerEmailVerifyCode(type, email, request.getRemoteAddr());

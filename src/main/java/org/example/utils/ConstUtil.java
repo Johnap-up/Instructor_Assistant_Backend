@@ -19,12 +19,14 @@ public class ConstUtil {
     public static final String FLOW_LIMIT_BLOCK = "flow:limit:BLOCK:";
 
     //验证码相关标记常数
-    public static final String VERIFY_EMAIL_LIMIT = "verify:email:limit:";
-    public static final String VERIFY_EMAIL_DATA = "verify:email:data:";
-    public static final String VERIFY_EMAIL_RESET_CODE = "verify:email:reset:code:";
+    public static final String VERIFY_EMAIL_LIMIT = "verify:email:limit:";                  //限制发送邮件频率，每VERIFY_BLOCK_TIME才可以发送
+    public static final String VERIFY_EMAIL_DATA = "verify:email:data:";                    //注册验证邮箱用，表示这一类验证码
+    public static final String VERIFY_EMAIL_RESET_CODE = "verify:email:reset:code:";        //重置密码时用的
+    public static final String VERIFY_EMAIL_MODIFY_CODE = "verify:email:modify:code:";      //修改邮箱用的验证码
 
     //验证码限制时间
-    public static final int VERIFY_BLOCK_TIME = 60;
+    public static final int VERIFY_BLOCK_TIME = 60;             //60s后重新发送
+    public static final int VERIFY_EMAIL_EFFECTIVE_TIME = 3;    //有效时长3min
 
     //前端保存Token的字段
     public static final String ATTR_USER_ID = "id";
