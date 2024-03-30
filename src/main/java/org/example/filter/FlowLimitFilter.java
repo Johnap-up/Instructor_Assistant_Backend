@@ -27,7 +27,6 @@ public class FlowLimitFilter extends HttpFilter {
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         String ip = request.getRemoteAddr();
-        System.out.println(ip);
         if (tryCount(ip)){
             chain.doFilter(request, response);
         }else{
@@ -52,7 +51,6 @@ public class FlowLimitFilter extends HttpFilter {
                     .ofNullable(stringRedisTemplate.opsForValue()
                             .increment(StringForRedisUtil.getFlowLimitCount(ip)))
                     .orElse(0L);
-            System.out.println(increment);
             if (increment > ConstUtil.FLOW_LIMIT_THRESHOLD_COUNT) {
                 stringRedisTemplate.opsForValue()
                         .set(StringForRedisUtil.getFlowLimitBlock(ip), "1", ConstUtil.FLOW_LIMIT_CLOSE_TIME, TimeUnit.SECONDS);

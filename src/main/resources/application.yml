@@ -1,5 +1,8 @@
 server:
   port: 9856
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: false #数据库下划线自动转驼峰标示关闭
 spring:
   security:
     filter:
