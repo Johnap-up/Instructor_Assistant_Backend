@@ -39,7 +39,8 @@ public class SecurityConfiguration {
         return http
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/api/auth/**", "/error").permitAll();     //error是给错误页面放行，如在发送验证码时邮箱输入错误那么就会转发到error上去
-                    auth.requestMatchers("/api/user/**").permitAll();
+                    auth.requestMatchers("/api/user/**", "/api/image/**").permitAll();
+                    auth.requestMatchers("/image/**").permitAll();                    //图片放行
                     auth.requestMatchers(new AntPathRequestMatcher("/static/**")).permitAll();
                     auth.anyRequest().authenticated();
                 })

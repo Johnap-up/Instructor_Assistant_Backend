@@ -18,20 +18,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class ObjectController {
     @Resource
     ImageService imageService;
-    @GetMapping("/learning/**")
+    @GetMapping("/avatar/**")
     public void imageFetch(HttpServletRequest request, HttpServletResponse response) throws Exception {
         this.fetchImage(request, response);
     }
     private void fetchImage(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String imagePath = request.getContextPath().substring(7);
+        String imagePath = request.getServletPath().substring(6);           //7-->"/image"
+
         ServletOutputStream stream = response.getOutputStream();
-        if (imagePath.length() < 13){
+        if (imagePath.length() < 13){                   //因为有UUID所以一定特别大
             response.setStatus(404);
             stream.println(RestBean.failure(404, "Not found").toString());
         }else{
             try{
-                imageService.fetchImageFromMinio(stream, imagePath);
-                response.setHeader("Cache-Control", "max-age=2592000");
+                imageService.fetchImageFromMinio(stream, imagePath);                    //把图片写入到stream中
+                response.setHeader("Cache-Control", "max-age=2592000");     //用于告诉浏览器缓存图片
             } catch (ErrorResponseException exception){
                 if (exception.response().code() == 404){
                     response.setStatus(404);

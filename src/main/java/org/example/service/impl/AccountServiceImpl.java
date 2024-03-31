@@ -101,7 +101,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
                 case 3: return  "该邮箱已被注册，该用户名已被注册";
             }
             String password = encoder.encode(emailRegisterVO.getPassword());
-            Account account = new Account(null, emailRegisterVO.getUsername(), password, email, "user", new Date());
+            Account account = new Account(null, emailRegisterVO.getUsername(), password, email, "user", new Date(), null);
             if (this.save(account)){
                 stringRedisTemplate.delete(key);        //验证完毕后删除验证码
                 return null;

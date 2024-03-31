@@ -10,6 +10,10 @@ spring:
     jwt:
       key: abcdefg
       expire: 7
+  servlet:
+    multipart:
+      max-file-size: 3MB
+      max-request-size: 20MB
   datasource:
     url: jdbc:mysql://localhost:3306/instructor_assistant
     username: root

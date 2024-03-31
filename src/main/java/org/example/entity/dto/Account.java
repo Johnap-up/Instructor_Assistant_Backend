@@ -28,4 +28,6 @@ public class Account implements BaseData {
     private String role;
     @TableField("register_time")
     private Date registerTime;
+    @TableField("avatar")
+    private String avatar;
 }

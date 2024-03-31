@@ -9,6 +9,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 public interface ImageService {
-    String uploadLearning(MultipartFile file, int id)throws IOException;
+    String uploadAvatar(MultipartFile file, int id)throws IOException;
     void fetchImageFromMinio(OutputStream stream, String image) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException;
 }
