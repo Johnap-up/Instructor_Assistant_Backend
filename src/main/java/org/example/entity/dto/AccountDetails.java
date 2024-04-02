@@ -27,4 +27,6 @@ public class AccountDetails implements BaseData {
     String experience;
     @TableField("phone")
     String phone;
+    @TableField("tid")
+    String tid;
 }

@@ -37,7 +37,6 @@ public class AccountController {
                 .orElseGet(AccountDetails::new);
         return RestBean.success(accountDetails.asViewObject(AccountDetailsVO.class));
     }
-
     @PostMapping("/save-details")
     public RestBean<String> saveDetails(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id,
                                         @RequestBody @Valid DetailSaveVO vo){

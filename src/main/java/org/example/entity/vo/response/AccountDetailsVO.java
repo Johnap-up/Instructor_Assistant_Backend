@@ -10,4 +10,5 @@ public class AccountDetailsVO {
     String annex_class;
     String experience;
     String phone;
+    String tid;
 }

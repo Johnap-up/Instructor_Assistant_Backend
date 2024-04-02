@@ -33,6 +33,8 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     FlowUtil flowUtil;
     @Resource
     PasswordEncoder encoder;
+    @Resource
+    AccountMapper accountMapper;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {   //
@@ -84,7 +86,6 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         String key = StringForRedisUtil.getVerifyEmailLimit(ip);      //ConstUtil.VERIFY_EMAIL_LIMIT + ip
         return flowUtil.limitOnceCheck(key, ConstUtil.VERIFY_BLOCK_TIME);
     }
-
     @Override
     public String registerEmailAccount(EmailRegisterVO emailRegisterVO) {
         String email = emailRegisterVO.getEmail();
@@ -116,7 +117,6 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         if (this.baseMapper.exists(Wrappers.<Account>query().eq("username", username))) i += 2;
         return i;
     }
-
     @Override
     public String resetEmailConfirm(EmailResetConfirmVO emailResetConfirmVO) {
         Account account = this.findByUsernameOrEmail(emailResetConfirmVO.getEmail());
@@ -132,7 +132,6 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         stringRedisTemplate.delete(key);            //若成功则删除验证码
         return null;
     }
-
     @Override
     public String resetPassword(EmailResetPasswordVO emailResetPasswordVO) {
         String password = encoder.encode(emailResetPasswordVO.getPassword());
@@ -140,10 +139,8 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         boolean update = this.update().eq("email", email).set("password", password).update();
         return update ? null : "内部错误，请联系管理员";
     }
-
     @Override
     public Account findAccountById(int id){ return this.query().eq("id", id).one();}
-
     @Override
     public String modifyEmail(int id, ModifyEmailVO modifyEmailVO) {
         String email = modifyEmailVO.getEmail();
@@ -157,7 +154,6 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         this.update().eq("id", id).set("email", email).update();
         return null;
     }
-
     @Override
     public String changePassword(int id, ChangePasswordVO changePasswordVO) {
         String password = this.query().eq("id",id).one().getPassword();
@@ -165,5 +161,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
             return "原密码错误，请重新输入";
         boolean result = this.update().eq("id",id).set("password", encoder.encode(changePasswordVO.getNew_password())).update();
         return result ? null : "内部错误，请联系管理员";
+    }
+    @Override
+    public String findTidById(int id) {
+        return accountMapper.getTidById(id);
     }
 }
