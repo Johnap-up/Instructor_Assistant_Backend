@@ -30,4 +30,6 @@ public class Student implements BaseData {
     private String qq;
     @TableField("email")
     private String email;
+    @TableField("phone")
+    private String phone;
 }

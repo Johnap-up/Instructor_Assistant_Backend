@@ -6,7 +6,7 @@ import org.example.entity.RestBean;
 import org.example.entity.dto.Account;
 import org.example.entity.dto.AccountDetails;
 import org.example.entity.vo.request.ChangePasswordVO;
-import org.example.entity.vo.request.DetailSaveVO;
+import org.example.entity.vo.request.saveDataVO.DetailSaveVO;
 import org.example.entity.vo.request.ModifyEmailVO;
 import org.example.entity.vo.response.AccountDetailsVO;
 import org.example.entity.vo.response.AccountVO;

@@ -1,8 +1,10 @@
 package org.example.controller;
 
 import jakarta.annotation.Resource;
+import jakarta.validation.Valid;
 import org.example.entity.RestBean;
 import org.example.entity.dto.Student;
+import org.example.entity.vo.request.saveDataVO.StudentSavaVO;
 import org.example.entity.vo.response.multDataVO.StudentAllInfoVO;
 import org.example.service.AccountService;
 import org.example.service.StudentService;
@@ -44,8 +46,19 @@ public class StudentController {
     }
     @PostMapping("/delete-student")
     public RestBean<String> deleteStudent(@RequestBody List<String> deleteList) {
-        System.out.println(deleteList);
-        return RestBean.success("hello");
+        int i = studentService.deleteStudent(deleteList);
+        return RestBean.success("成功删除" + i + "个学生");
+    }
+    @PostMapping("/save-student")
+    public RestBean<String> saveStudent(@RequestBody StudentSavaVO studentSavaVO) {
+        String result =studentService.saveStudent(studentSavaVO);
+        return result == null ? RestBean.success("修改成功") : RestBean.failure(400, result);
+    }
+    @PostMapping("/insert-student")
+    public RestBean<String> insertStudent(@RequestBody @Valid Student student) {
+        System.out.println(student);
+        String result = studentService.insertStudent(student);
+        return result == null ? RestBean.success("添加成功") : RestBean.failure(400, result);
     }
 }
 

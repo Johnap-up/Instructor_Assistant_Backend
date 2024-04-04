@@ -1,21 +1,22 @@
-package org.example.entity.vo.response;
+package org.example.entity.vo.request.saveDataVO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.entity.reflection.BaseData;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class StudentWithActivityVO {
-    private String sid;
+public class StudentSavaVO implements BaseData {
+    private String sid;     //new
+    private String oldSid;
     private String name;
     private int gender;
     private String dormitory;
     private String room;
     private int classroom;
-    private int type;
-    private int doneNum;
-    private int totalNum;
+    private String qq;
+    private String email;
     private String phone;
 }

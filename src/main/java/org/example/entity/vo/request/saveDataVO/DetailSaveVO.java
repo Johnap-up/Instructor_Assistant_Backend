@@ -1,4 +1,4 @@
-package org.example.entity.vo.request;
+package org.example.entity.vo.request.saveDataVO;
 
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
