@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
 import org.example.entity.dto.Student;
 import org.example.entity.vo.request.saveDataVO.StudentSavaVO;
-import org.example.entity.vo.response.StudentActivityRate;
+import org.example.entity.vo.response.StudentTaskRate;
 import org.example.mapper.StudentMapper;
 import org.example.service.StudentService;
 import org.springframework.stereotype.Service;
@@ -31,11 +31,11 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         }
     }
     @Override
-    public Map<String, String> getStudentDoneRate(int year, String tid, int type) {
-        List<StudentActivityRate> list = studentMapper.getFinishRate(year, tid, type);
+    public Map<String, String> getStudentDoneRate(int year, int semester, String tid, int type) {
+        List<StudentTaskRate> list = studentMapper.getFinishRate(year, semester, tid, type);
         return list.stream().collect(Collectors.toMap(
-                StudentActivityRate::getSid,
-                studentActivityRate -> studentActivityRate.getDoneNum() + "/" + studentActivityRate.getTotalNum()
+                StudentTaskRate::getSid,
+                studentTaskRate -> studentTaskRate.getDoneNum() + "/" + studentTaskRate.getTotalNum()
         ));
     }
     @Override

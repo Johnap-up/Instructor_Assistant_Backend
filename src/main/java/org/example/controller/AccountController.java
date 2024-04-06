@@ -6,17 +6,17 @@ import org.example.entity.RestBean;
 import org.example.entity.dto.Account;
 import org.example.entity.dto.AccountDetails;
 import org.example.entity.vo.request.ChangePasswordVO;
-import org.example.entity.vo.request.saveDataVO.DetailSaveVO;
 import org.example.entity.vo.request.ModifyEmailVO;
+import org.example.entity.vo.request.saveDataVO.DetailSaveVO;
 import org.example.entity.vo.response.AccountDetailsVO;
 import org.example.entity.vo.response.AccountVO;
 import org.example.service.AccountDetailsService;
 import org.example.service.AccountService;
 import org.example.utils.ConstUtil;
+import org.example.utils.ControllerUtil;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
-import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/api/user")
@@ -25,6 +25,8 @@ public class AccountController {
     AccountService accountService;
     @Resource
     AccountDetailsService accountDetailsService;
+    @Resource
+    ControllerUtil controllerUtil;
     @GetMapping("/info")
     public RestBean<AccountVO> info(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id){
         Account account = accountService.findAccountById(id);
@@ -47,15 +49,11 @@ public class AccountController {
     @PostMapping("/modify-email")
     public RestBean<String> modifyEmail(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id,
                                         @RequestBody @Valid ModifyEmailVO modifyEmailVO){
-        return this.messageHandle(() -> accountService.modifyEmail(id, modifyEmailVO));
+        return controllerUtil.messageHandle(() -> accountService.modifyEmail(id, modifyEmailVO));
     }
     @PostMapping("/change-password")
     public RestBean<String> changePassword(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id,
                                            @RequestBody @Valid ChangePasswordVO changePasswordVO){
-        return this.messageHandle(() -> accountService.changePassword(id, changePasswordVO));
-    }
-    private <T> RestBean<T> messageHandle(Supplier<String> action){
-        String msg = action.get();
-        return msg == null ? RestBean.success() : RestBean.failure(400, msg);
+        return controllerUtil.messageHandle(() -> accountService.changePassword(id, changePasswordVO));
     }
 }

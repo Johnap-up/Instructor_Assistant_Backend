@@ -1,14 +1,9 @@
 package org.example;
 
 import jakarta.annotation.Resource;
-import org.example.entity.vo.response.StudentActivityRate;
 import org.example.mapper.StudentMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @SpringBootTest
 class InstructorAssistantBackApplicationTests {
@@ -18,12 +13,24 @@ class InstructorAssistantBackApplicationTests {
 
     @Test
     void contextLoads() {
-        List<StudentActivityRate> list = studentMapper.getFinishRate(2021, "212101", 1);
-        Map<String, String> map = list.stream().collect(Collectors.toMap(
-                StudentActivityRate::getSid,
-                studentActivityRate -> studentActivityRate.getDoneNum() + "/" + studentActivityRate.getTotalNum()
-        ));
-        System.out.println(map);
+        System.out.println("2021".substring(2));
+//        Date date = new Date();
+//        System.out.println(date);
+//        Calendar cal = Calendar.getInstance();
+//        int day = cal.get(Calendar.DATE);
+//        int month = cal.get(Calendar.MONTH) + 1;
+//        int year = cal.get(Calendar.YEAR);
+//        int dow = cal.get(Calendar.DAY_OF_WEEK);
+//        int dom = cal.get(Calendar.DAY_OF_MONTH);
+//        int doy = cal.get(Calendar.DAY_OF_YEAR);
+//
+//        System.out.println("Current Date: " + cal.getTime());
+//        System.out.println("Day: " + day);
+//        System.out.println("Month: " + month);
+//        System.out.println("Year: " + year);
+//        System.out.println("Day of Week: " + dow);
+//        System.out.println("Day of Month: " + dom);
+//        System.out.println("Day of Year: " + doy);
     }
 
 }

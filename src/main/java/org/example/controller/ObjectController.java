@@ -18,8 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class ObjectController {
     @Resource
     ImageService imageService;
-    @GetMapping("/avatar/**")
+    @GetMapping("/**")           //原本为/avatar/**
     public void imageFetch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        response.setHeader("Content-Type", "image/jpeg");
         this.fetchImage(request, response);
     }
     private void fetchImage(HttpServletRequest request, HttpServletResponse response) throws Exception {

@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class StudentActivityRate {
+public class StudentTaskRate {
     private String sid;
     private int doneNum;
     private int totalNum;

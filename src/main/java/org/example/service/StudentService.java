@@ -10,7 +10,7 @@ import java.util.Map;
 public interface StudentService extends IService<Student>{
 
     List<Student> getSelectStudents(String name, Integer classroom);
-    Map<String,String> getStudentDoneRate(int year, String tid, int type);
+    Map<String,String> getStudentDoneRate(int year, int semester, String tid, int type);
     Integer deleteStudent(List<String> deleteList);
     String saveStudent(StudentSavaVO studentSavaVO);
     String insertStudent(Student student);

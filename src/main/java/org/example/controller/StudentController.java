@@ -27,18 +27,20 @@ public class StudentController {
     }
     @GetMapping("/done-rate")           //每个任务的完成率
     public RestBean<Map<String, String>> getDoneRate(@RequestParam(value = "year") int year,
+                                                     @RequestParam(value = "semester") int semester,
                                                      @RequestParam(value = "tid") String tid,
                                                      @RequestParam(value = "type") int type){
-        return RestBean.success(studentService.getStudentDoneRate(year, tid, type));
+        return RestBean.success(studentService.getStudentDoneRate(year, semester, tid, type));
     }
     @GetMapping("/all-info")
     public RestBean<StudentAllInfoVO> getAllInfo(@RequestParam(required = false, value = "name") String name,
                                                  @RequestParam(required = false, value = "classroom") Integer classroom,
                                                  @RequestParam(value = "year") int year,
+                                                 @RequestParam(value = "semester") int semester,
                                                  @RequestAttribute(ConstUtil.ATTR_USER_ID) int id){
         String tid = accountService.findTidById(id);
-        Map<String, String> map1 = studentService.getStudentDoneRate(year, tid, 1);
-        Map<String, String> map2 = studentService.getStudentDoneRate(year, tid, 2);
+        Map<String, String> map1 = studentService.getStudentDoneRate(year, semester, tid, 1);
+        Map<String, String> map2 = studentService.getStudentDoneRate(year, semester, tid, 2);
         Map<String, Map<String, String>> map = new HashMap<>();
         map.put("1", map1);
         map.put("2", map2);
