@@ -16,4 +16,6 @@ public class TaskType implements BaseData {
     private String name;
     @TableField("`desc`")
     private String desc;
+    @TableField("color")
+    private String color;
 }
