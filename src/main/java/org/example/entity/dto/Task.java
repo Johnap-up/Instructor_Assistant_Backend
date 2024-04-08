@@ -4,13 +4,18 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.example.entity.reflection.BaseData;
 
 import java.util.Date;
 
-@TableName("task")
 @Data
-public class Task {
+@TableName("task")
+@AllArgsConstructor
+@NoArgsConstructor
+public class Task implements BaseData {
     @TableId(type = IdType.INPUT)
     private String aid;
     @TableField("tid")

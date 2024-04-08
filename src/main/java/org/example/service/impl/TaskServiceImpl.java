@@ -1,5 +1,6 @@
 package org.example.service.impl;
 
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.PostConstruct;
@@ -9,16 +10,19 @@ import lombok.Data;
 import org.example.entity.dto.Task;
 import org.example.entity.dto.TaskType;
 import org.example.entity.vo.request.TaskCreateVO;
+import org.example.entity.vo.response.TaskPreviewVO;
 import org.example.mapper.AccountDetailsMapper;
+import org.example.mapper.AccountMapper;
 import org.example.mapper.TaskMapper;
 import org.example.mapper.TaskTypeMapper;
 import org.example.service.TaskService;
+import org.example.utils.CacheUtil;
+import org.example.utils.ConstUtil;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.Calendar;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +33,10 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     private TaskMapper taskMapper;
     @Resource
     private AccountDetailsMapper accountDetailsMapper;
+    @Resource
+    private CacheUtil cacheUtil;
+    @Resource
+    AccountMapper accountMapper;
     private Set<Integer> types = null;
     @PostConstruct
     private void init(){
@@ -39,7 +47,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     }
     @Override
     public List<TaskType> listTypes() {
-        return taskTypeMapper.selectList(null);
+        return taskTypeMapper.getAllTaskType();
     }
 
     @Override
@@ -65,6 +73,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         task.setYear(aidYearSemester.getYear());
         System.out.println(task);
         if (save(task)) {
+            //要修改缓存
+            cacheUtil.deleteCache(ConstUtil.TASK_PREVIEW_CACHE + "*");
             return null;
         }else {
             return "内部错误，请联系管理员";
@@ -109,4 +119,87 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         int semester;
         int sequence;
     }
+
+    @Override
+    public List<TaskPreviewVO> listTaskByTypeAndPage(int type, int page, int year, int semester, int id) {
+        String tid = accountMapper.getTidById(id);          //获取tid
+        String key = ConstUtil.TASK_PREVIEW_CACHE + tid + ":" + page + ":" + type + ":" + semester + ":" + year;
+        List<TaskPreviewVO> list = cacheUtil.takeListFromCache(key, TaskPreviewVO.class);
+        if (list != null) return list;
+        List<Task> tasks;
+        if (type == 0){
+            if (year ==0 && semester !=0)
+                tasks = taskMapper.taskListBySemester(semester, tid, page * ConstUtil.TASK_PAGE_SIZE);
+            else if (year != 0 && semester == 0)
+                tasks = taskMapper.taskListByYear(year, tid, page * ConstUtil.TASK_PAGE_SIZE);
+            else if (year == 0)
+                tasks = taskMapper.listAll(tid, page * ConstUtil.TASK_PAGE_SIZE);
+            else
+                tasks = taskMapper.taskList(year, semester, tid, page * ConstUtil.TASK_PAGE_SIZE);      // * 10
+        } else{
+            tasks = taskMapper.taskListByType(year, semester, tid, type, page * ConstUtil.TASK_PAGE_SIZE);
+        }
+        return getTaskPreviewVOS(id, key, tasks);
+    }
+    private TaskPreviewVO taskToTaskPreviewVO(Task task){
+        TaskPreviewVO taskPreviewVO = new TaskPreviewVO();
+        //复制了aid, type, title, issueTime, endTime, tid，剩下text, images, name
+        BeanUtils.copyProperties(task, taskPreviewVO);
+
+        List<String> images = new ArrayList<>();
+        StringBuilder previewText = new StringBuilder();
+        JSONArray ops = JSONObject.parseObject(task.getContent()).getJSONArray("ops");      //quill文本内容
+        for (Object op : ops) {
+            Object insert = JSONObject.from(op).get("insert");
+            if (insert instanceof String text){
+                if (previewText.length() >= ConstUtil.TASK_PREVIEW_CONTENT_LENGTH) continue;      //300
+                previewText.append(text);
+            }else if (insert instanceof Map<?, ?> map){
+                Optional.ofNullable(map.get("image"))
+                        .ifPresent(obj -> images.add(obj.toString()));
+            }
+        }
+        taskPreviewVO.setText(previewText.length() > ConstUtil.TASK_PREVIEW_CONTENT_LENGTH
+                ? previewText.substring(0, ConstUtil.TASK_PREVIEW_CONTENT_LENGTH)
+                : previewText.toString());
+        taskPreviewVO.setImages(images);
+        return taskPreviewVO;
+    }
+
+    @Override
+    public List<TaskPreviewVO> listAllTask(int page, int id) {
+        String tid = accountMapper.getTidById(id);          //获取tid
+        String key = ConstUtil.TASK_PREVIEW_CACHE + page;
+        List<TaskPreviewVO> list = cacheUtil.takeListFromCache(key, TaskPreviewVO.class);
+        if (list != null) return list;
+        List<Task> tasks;
+        tasks = taskMapper.listAll(tid, page * ConstUtil.TASK_PAGE_SIZE);
+        return getTaskPreviewVOS(id, key, tasks);
+    }
+
+    @Nullable
+    private List<TaskPreviewVO> getTaskPreviewVOS(int id, String key, List<Task> tasks) {
+        List<TaskPreviewVO> list;
+        if (tasks.isEmpty()) return null;
+        list = tasks.stream().map(this::taskToTaskPreviewVO).toList();
+        String name = accountMapper.selectById(id).getUsername();
+        for (TaskPreviewVO taskPreviewVO : list)
+            taskPreviewVO.setName(name);
+        cacheUtil.saveListToCache(key, list, ConstUtil.TASK_PREVIEW_CACHE_EXPIRE);
+        return list;
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

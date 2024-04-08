@@ -1,8 +1,10 @@
 package org.example.utils;
 
+import lombok.Data;
 import org.springframework.stereotype.Component;
 
 @Component
+@Data
 public class ConstUtil {
     //退出登录用的黑名单
     public static final String JWT_BLACK_LIST = "jwt:blacklist:";
@@ -14,7 +16,7 @@ public class ConstUtil {
     //限流的常数
     public static final int FLOW_LIMIT_LISTEN_TIME = 3;     //s
     public static final int FLOW_LIMIT_CLOSE_TIME = 30;     //s
-    public static final int FLOW_LIMIT_THRESHOLD_COUNT = 10;    //次
+    public static final int FLOW_LIMIT_THRESHOLD_COUNT = 20;    //次
     public static final String FLOW_LIMIT_COUNT = "flow:limit:count:";
     public static final String FLOW_LIMIT_BLOCK = "flow:limit:BLOCK:";
 
@@ -33,4 +35,12 @@ public class ConstUtil {
 
     //用到的Minio bucket
     public static final String BUCKET_INSTRUCTOR = "instructor";
+
+    //分页常数
+    public static final int TASK_PAGE_SIZE = 10;
+
+    //任务相关常数
+    public static final int TASK_PREVIEW_CONTENT_LENGTH = 300;
+    public static final String TASK_PREVIEW_CACHE = "task:preview:cache:";
+    public static final int TASK_PREVIEW_CACHE_EXPIRE = 60;         //单位s
 }
