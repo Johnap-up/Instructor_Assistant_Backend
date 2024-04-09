@@ -30,7 +30,8 @@ public class AccountController {
     @GetMapping("/info")
     public RestBean<AccountVO> info(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id){
         Account account = accountService.findAccountById(id);
-        return RestBean.success(account.asViewObject(AccountVO.class));
+        String name = accountDetailsService.findAccountDetailsById(id).getName();
+        return RestBean.success(account.asViewObject(AccountVO.class, accountVO -> accountVO.setName(name)));
     }
     @GetMapping("/details")
     public RestBean<AccountDetailsVO> details(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id){

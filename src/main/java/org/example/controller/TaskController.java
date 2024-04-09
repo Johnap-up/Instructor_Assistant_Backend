@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import lombok.extern.slf4j.Slf4j;
 import org.example.entity.RestBean;
 import org.example.entity.vo.request.TaskCreateVO;
+import org.example.entity.vo.response.TaskDetailVO;
 import org.example.entity.vo.response.TaskPreviewVO;
 import org.example.entity.vo.response.TaskTypeVO;
 import org.example.service.TaskService;
@@ -41,11 +42,15 @@ public class TaskController {
                                                   @RequestParam int year,
                                                   @RequestParam int semester,
                                                   @RequestAttribute(ConstUtil.ATTR_USER_ID) int id){
-        return RestBean.success(taskService.listTaskByTypeAndPage(type, page, year, semester, id));
+        return RestBean.success(taskService.listTaskByTypeAndPage(type, page + 1, year, semester, id)); //Pagination start from 1
     }
     @GetMapping("/list-all-task")
     public RestBean<List<TaskPreviewVO>> listAllTask(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id,
                                                      @RequestParam @Min(0) int page){
         return RestBean.success(taskService.listAllTask(page, id));
+    }
+    @GetMapping("/task")
+    public RestBean<TaskDetailVO> task(@RequestParam @Min(0) String taskId){
+        return RestBean.success(taskService.getTaskDetail(taskId));
     }
 }

@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TaskPreviewVO {
-    String aid;
+    String taskId;
     String tid;             //发布人的工号
     int type;
     String title;           //标题

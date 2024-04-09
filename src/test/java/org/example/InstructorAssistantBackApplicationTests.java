@@ -25,5 +25,4 @@ class InstructorAssistantBackApplicationTests {
         System.out.println(taskMapper.taskList(2023, 2, "212101", 0));
 //        System.out.println("2021".substring(2));
     }
-
 }

@@ -17,7 +17,7 @@ import java.util.Date;
 @NoArgsConstructor
 public class Task implements BaseData {
     @TableId(type = IdType.INPUT)
-    private String aid;
+    private String taskId;
     @TableField("tid")
     private String tid;
     @TableField("type")

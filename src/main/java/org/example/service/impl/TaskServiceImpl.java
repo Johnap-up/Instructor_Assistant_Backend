@@ -2,14 +2,19 @@ package org.example.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.example.entity.dto.Account;
+import org.example.entity.dto.AccountDetails;
 import org.example.entity.dto.Task;
 import org.example.entity.dto.TaskType;
 import org.example.entity.vo.request.TaskCreateVO;
+import org.example.entity.vo.response.TaskDetailVO;
 import org.example.entity.vo.response.TaskPreviewVO;
 import org.example.mapper.AccountDetailsMapper;
 import org.example.mapper.AccountMapper;
@@ -65,7 +70,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         AidYearSemester aidYearSemester = genAid(type, tid);
 
         //task属性设置, title，type，issueTime，endTime已经通过copy函数设置了
-        task.setAid(aidYearSemester.getAid());
+        task.setTaskId(aidYearSemester.getAid());
         task.setTid(tid);
         task.setContent(taskCreateVO.getContent().toJSONString());
         task.setSequence(aidYearSemester.getSequence());
@@ -126,19 +131,26 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         String key = ConstUtil.TASK_PREVIEW_CACHE + tid + ":" + page + ":" + type + ":" + semester + ":" + year;
         List<TaskPreviewVO> list = cacheUtil.takeListFromCache(key, TaskPreviewVO.class);
         if (list != null) return list;
+        Page<Task> mybatisPage = Page.of(page, ConstUtil.TASK_PAGE_SIZE);
         List<Task> tasks;
         if (type == 0){
             if (year ==0 && semester !=0)
-                tasks = taskMapper.taskListBySemester(semester, tid, page * ConstUtil.TASK_PAGE_SIZE);
+                baseMapper.selectPage(mybatisPage, Wrappers.<Task>query().eq("semester", semester).eq("tid", tid).orderByDesc("issue_time"));
+//                tasks = taskMapper.taskListBySemester(semester, tid, page * ConstUtil.TASK_PAGE_SIZE);
             else if (year != 0 && semester == 0)
-                tasks = taskMapper.taskListByYear(year, tid, page * ConstUtil.TASK_PAGE_SIZE);
+                baseMapper.selectPage(mybatisPage, Wrappers.<Task>query().eq("year", year).eq("tid", tid).orderByDesc("issue_time"));
+//                tasks = taskMapper.taskListByYear(year, tid, page * ConstUtil.TASK_PAGE_SIZE);
             else if (year == 0)
-                tasks = taskMapper.listAll(tid, page * ConstUtil.TASK_PAGE_SIZE);
+                baseMapper.selectPage(mybatisPage, Wrappers.<Task>query().eq("tid", tid).orderByDesc("issue_time"));
+//                tasks = taskMapper.listAll(tid, page * ConstUtil.TASK_PAGE_SIZE);
             else
-                tasks = taskMapper.taskList(year, semester, tid, page * ConstUtil.TASK_PAGE_SIZE);      // * 10
+                baseMapper.selectPage(mybatisPage, Wrappers.<Task>query().eq("year", year).eq("semester", semester).eq("tid", tid).orderByDesc("issue_time"));
+//                tasks = taskMapper.taskList(year, semester, tid, page * ConstUtil.TASK_PAGE_SIZE);      // * 10
         } else{
-            tasks = taskMapper.taskListByType(year, semester, tid, type, page * ConstUtil.TASK_PAGE_SIZE);
+            baseMapper.selectPage(mybatisPage, Wrappers.<Task>query().eq("year", year).eq("semester", semester).eq("type", type).eq("tid", tid).orderByDesc("issue_time"));
+//            tasks = taskMapper.taskListByType(year, semester, tid, type, page * ConstUtil.TASK_PAGE_SIZE);
         }
+        tasks = mybatisPage.getRecords();
         return getTaskPreviewVOS(id, key, tasks);
     }
     private TaskPreviewVO taskToTaskPreviewVO(Task task){
@@ -176,17 +188,31 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         tasks = taskMapper.listAll(tid, page * ConstUtil.TASK_PAGE_SIZE);
         return getTaskPreviewVOS(id, key, tasks);
     }
-
     @Nullable
     private List<TaskPreviewVO> getTaskPreviewVOS(int id, String key, List<Task> tasks) {
         List<TaskPreviewVO> list;
         if (tasks.isEmpty()) return null;
         list = tasks.stream().map(this::taskToTaskPreviewVO).toList();
-        String name = accountMapper.selectById(id).getUsername();
+        String name = accountDetailsMapper.selectById(id).getName();
         for (TaskPreviewVO taskPreviewVO : list)
             taskPreviewVO.setName(name);
         cacheUtil.saveListToCache(key, list, ConstUtil.TASK_PREVIEW_CACHE_EXPIRE);
         return list;
+    }
+
+    @Override
+    public TaskDetailVO getTaskDetail(String taskId) {
+        TaskDetailVO taskDetailVO = new TaskDetailVO();
+        Task task = taskMapper.selectById(taskId);
+        BeanUtils.copyProperties(task, taskDetailVO);
+        TaskDetailVO.User user = new TaskDetailVO.User();
+        String tid = task.getTid();
+        AccountDetails accountDetails = accountDetailsMapper.selectOne(Wrappers.<AccountDetails>query().eq("tid", tid));
+        Account account = accountMapper.selectById(accountDetails.getId());
+        BeanUtils.copyProperties(account, user);
+        BeanUtils.copyProperties(accountDetails, user);
+        taskDetailVO.setUser(user);
+        return taskDetailVO;
     }
 }
 
