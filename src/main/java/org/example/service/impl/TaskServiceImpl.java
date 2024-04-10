@@ -14,6 +14,7 @@ import org.example.entity.dto.AccountDetails;
 import org.example.entity.dto.Task;
 import org.example.entity.dto.TaskType;
 import org.example.entity.vo.request.TaskCreateVO;
+import org.example.entity.vo.request.TaskUpdateVO;
 import org.example.entity.vo.response.TaskDetailVO;
 import org.example.entity.vo.response.TaskPreviewVO;
 import org.example.mapper.AccountDetailsMapper;
@@ -213,6 +214,23 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         BeanUtils.copyProperties(accountDetails, user);
         taskDetailVO.setUser(user);
         return taskDetailVO;
+    }
+
+    @Override
+    public String updateTask(int id, TaskUpdateVO taskUpdateVO) {
+        if (!textLimitCheck(taskUpdateVO.getContent()))
+            return "文章内容过长，发送失败";
+        if (!types.contains(taskUpdateVO.getType()))
+            return "任务类型不存在";
+        String tid = accountMapper.getTidById(id);
+        baseMapper.update(null, Wrappers.<Task>update()
+                .eq("tid", tid)
+                .eq("taskId", taskUpdateVO.getTaskId())
+                .set("title", taskUpdateVO.getTitle())
+                .set("content", taskUpdateVO.getContent().toString())
+                .set("type", taskUpdateVO.getType())
+        );
+        return null;
     }
 }
 

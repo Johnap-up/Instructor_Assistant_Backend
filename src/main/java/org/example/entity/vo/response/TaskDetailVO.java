@@ -10,7 +10,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TaskDetailVO {
-    String aid;
+    String taskId;
     int type;
     String title;
     String content;
@@ -23,6 +23,7 @@ public class TaskDetailVO {
     public static class User {      //这里的User是发帖人的信息，也就是显示account和account_detail
         Integer id;
         String name;
+        String role;
         String avatar;
         String phone;
         int gender;

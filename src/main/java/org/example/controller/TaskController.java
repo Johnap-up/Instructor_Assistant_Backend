@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import lombok.extern.slf4j.Slf4j;
 import org.example.entity.RestBean;
 import org.example.entity.vo.request.TaskCreateVO;
+import org.example.entity.vo.request.TaskUpdateVO;
 import org.example.entity.vo.response.TaskDetailVO;
 import org.example.entity.vo.response.TaskPreviewVO;
 import org.example.entity.vo.response.TaskTypeVO;
@@ -49,8 +50,19 @@ public class TaskController {
                                                      @RequestParam @Min(0) int page){
         return RestBean.success(taskService.listAllTask(page, id));
     }
-    @GetMapping("/task")
+    @GetMapping("/task-detail")
     public RestBean<TaskDetailVO> task(@RequestParam @Min(0) String taskId){
         return RestBean.success(taskService.getTaskDetail(taskId));
     }
+    @PostMapping("/update-task")
+    public RestBean<Void> updateTask(@Valid @RequestBody TaskUpdateVO taskUpdateVO,
+                                     @RequestAttribute(ConstUtil.ATTR_USER_ID) int id){
+        return controllerUtil.messageHandle(() -> taskService.updateTask(id, taskUpdateVO));
+    }
+//    @PostMapping("/add-comment")
+//    public RestBean<Void> addComment(@RequestParam String taskId,
+//                                     @RequestParam String content,
+//                                     @RequestAttribute(ConstUtil.ATTR_USER_ID) int id){
+//        return controllerUtil.messageHandle(() -> taskService.addComment(taskId, content, id));
+//    }
 }
