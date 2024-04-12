@@ -18,6 +18,7 @@ public class TaskDetailVO {
     Date endTime;
     int year;
     int semester;
+    Long recordAmount;
     User user;
     @Data
     public static class User {      //这里的User是发帖人的信息，也就是显示account和account_detail

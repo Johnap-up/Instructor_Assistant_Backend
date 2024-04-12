@@ -9,18 +9,14 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.example.entity.dto.Account;
-import org.example.entity.dto.AccountDetails;
-import org.example.entity.dto.Task;
-import org.example.entity.dto.TaskType;
+import org.example.entity.dto.*;
+import org.example.entity.vo.request.SubmitRecordVO;
 import org.example.entity.vo.request.TaskCreateVO;
 import org.example.entity.vo.request.TaskUpdateVO;
+import org.example.entity.vo.response.SubmitRecordShowVO;
 import org.example.entity.vo.response.TaskDetailVO;
 import org.example.entity.vo.response.TaskPreviewVO;
-import org.example.mapper.AccountDetailsMapper;
-import org.example.mapper.AccountMapper;
-import org.example.mapper.TaskMapper;
-import org.example.mapper.TaskTypeMapper;
+import org.example.mapper.*;
 import org.example.service.TaskService;
 import org.example.utils.CacheUtil;
 import org.example.utils.ConstUtil;
@@ -29,6 +25,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,6 +40,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     private CacheUtil cacheUtil;
     @Resource
     AccountMapper accountMapper;
+    @Resource
+    StudentTaskRecordMapper studentTaskRecordMapper;
     private Set<Integer> types = null;
     @PostConstruct
     private void init(){
@@ -58,7 +57,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
     @Override
     public String createTask(int uid, TaskCreateVO taskCreateVO) {
-        if (!textLimitCheck(taskCreateVO.getContent()))
+        if (!textLimitCheck(taskCreateVO.getContent(), 20000))
             return "文章内容过长，发送失败";
         if (!types.contains(taskCreateVO.getType()))
             return "任务类型不存在";
@@ -86,12 +85,12 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             return "内部错误，请联系管理员";
         }
     }
-    private boolean textLimitCheck(JSONObject object){
+    private boolean textLimitCheck(JSONObject object, int max){
         if (object == null) return false;
         long length = 0;
         for (Object op : object.getJSONArray("ops")){
             length += JSONObject.from(op).getString("insert").length();
-            if (length > 20000) return false;
+            if (length > max) return false;
         }
         return true;
     }
@@ -137,16 +136,12 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         if (type == 0){
             if (year ==0 && semester !=0)
                 baseMapper.selectPage(mybatisPage, Wrappers.<Task>query().eq("semester", semester).eq("tid", tid).orderByDesc("issue_time"));
-//                tasks = taskMapper.taskListBySemester(semester, tid, page * ConstUtil.TASK_PAGE_SIZE);
             else if (year != 0 && semester == 0)
                 baseMapper.selectPage(mybatisPage, Wrappers.<Task>query().eq("year", year).eq("tid", tid).orderByDesc("issue_time"));
-//                tasks = taskMapper.taskListByYear(year, tid, page * ConstUtil.TASK_PAGE_SIZE);
             else if (year == 0)
                 baseMapper.selectPage(mybatisPage, Wrappers.<Task>query().eq("tid", tid).orderByDesc("issue_time"));
-//                tasks = taskMapper.listAll(tid, page * ConstUtil.TASK_PAGE_SIZE);
             else
                 baseMapper.selectPage(mybatisPage, Wrappers.<Task>query().eq("year", year).eq("semester", semester).eq("tid", tid).orderByDesc("issue_time"));
-//                tasks = taskMapper.taskList(year, semester, tid, page * ConstUtil.TASK_PAGE_SIZE);      // * 10
         } else{
             baseMapper.selectPage(mybatisPage, Wrappers.<Task>query().eq("year", year).eq("semester", semester).eq("type", type).eq("tid", tid).orderByDesc("issue_time"));
 //            tasks = taskMapper.taskListByType(year, semester, tid, type, page * ConstUtil.TASK_PAGE_SIZE);
@@ -162,6 +157,14 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         List<String> images = new ArrayList<>();
         StringBuilder previewText = new StringBuilder();
         JSONArray ops = JSONObject.parseObject(task.getContent()).getJSONArray("ops");      //quill文本内容
+        this.shortContent(ops, previewText, obj -> images.add(obj.toString()));
+        taskPreviewVO.setText(previewText.length() > ConstUtil.TASK_PREVIEW_CONTENT_LENGTH
+                ? previewText.substring(0, ConstUtil.TASK_PREVIEW_CONTENT_LENGTH)
+                : previewText.toString());
+        taskPreviewVO.setImages(images);
+        return taskPreviewVO;
+    }
+    private void shortContent(JSONArray ops, StringBuilder previewText, Consumer<Object> imageHandler){
         for (Object op : ops) {
             Object insert = JSONObject.from(op).get("insert");
             if (insert instanceof String text){
@@ -169,14 +172,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
                 previewText.append(text);
             }else if (insert instanceof Map<?, ?> map){
                 Optional.ofNullable(map.get("image"))
-                        .ifPresent(obj -> images.add(obj.toString()));
+                        .ifPresent(imageHandler);
             }
         }
-        taskPreviewVO.setText(previewText.length() > ConstUtil.TASK_PREVIEW_CONTENT_LENGTH
-                ? previewText.substring(0, ConstUtil.TASK_PREVIEW_CONTENT_LENGTH)
-                : previewText.toString());
-        taskPreviewVO.setImages(images);
-        return taskPreviewVO;
     }
 
     @Override
@@ -208,18 +206,22 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         BeanUtils.copyProperties(task, taskDetailVO);
         TaskDetailVO.User user = new TaskDetailVO.User();
         String tid = task.getTid();
+        taskDetailVO.setUser(this.fillUserDetails(user, tid));
+        taskDetailVO.setRecordAmount(studentTaskRecordMapper.selectCount(Wrappers.<StudentTaskRecord>query().eq("taskId", taskId)));
+        return taskDetailVO;
+    }
+    private <T> T fillUserDetails(T target, String tid){
         AccountDetails accountDetails = accountDetailsMapper.selectOne(Wrappers.<AccountDetails>query().eq("tid", tid));
         Account account = accountMapper.selectById(accountDetails.getId());
-        BeanUtils.copyProperties(account, user);
-        BeanUtils.copyProperties(accountDetails, user);
-        taskDetailVO.setUser(user);
-        return taskDetailVO;
+        BeanUtils.copyProperties(account, target);
+        BeanUtils.copyProperties(accountDetails, target);
+        return target;
     }
 
     @Override
     public String updateTask(int id, TaskUpdateVO taskUpdateVO) {
-        if (!textLimitCheck(taskUpdateVO.getContent()))
-            return "文章内容过长，发送失败";
+        if (!textLimitCheck(taskUpdateVO.getContent(), 20000))
+            return "内容过长，更新失败";
         if (!types.contains(taskUpdateVO.getType()))
             return "任务类型不存在";
         String tid = accountMapper.getTidById(id);
@@ -231,6 +233,48 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
                 .set("type", taskUpdateVO.getType())
         );
         return null;
+    }
+
+    @Override
+    public String createSubmitRecord(int id, SubmitRecordVO submitRecordVO) {
+        if(!textLimitCheck(JSONObject.parseObject(submitRecordVO.getContent()),200))
+            return "内容过长，发送失败";
+        StudentTaskRecord studentTaskRecord = new StudentTaskRecord();
+        // 复制了taskId和content，还剩下sid, isDone, IsOK, submitTime
+        BeanUtils.copyProperties(submitRecordVO, studentTaskRecord);
+        studentTaskRecord.setSid(accountMapper.getTidById(id));     //暂时用管理员的tid，而非学生的学号之类的
+        studentTaskRecord.setSubmitTime(new Date());
+        studentTaskRecord.setOK(true);
+        studentTaskRecord.setDone(true);
+        studentTaskRecordMapper.insert(studentTaskRecord);
+        return null;
+    }
+
+    @Override
+    public List<SubmitRecordShowVO> submitRecordShow(String taskId, int pageNumber) {
+        Page<StudentTaskRecord> page = Page.of(pageNumber, ConstUtil.TASK_PAGE_SIZE);
+        studentTaskRecordMapper.selectPage(page, Wrappers.<StudentTaskRecord>query().eq("taskId", taskId).orderByAsc("submitTime"));
+        return page.getRecords().stream().map(dto -> {
+            SubmitRecordShowVO submitRecordShowVO = new SubmitRecordShowVO();
+            //copy了content，id, submitTime,还差text和images
+            BeanUtils.copyProperties(dto, submitRecordShowVO);
+            SubmitRecordShowVO.User user = new SubmitRecordShowVO.User();
+            Task task = taskMapper.selectById(taskId);
+            String tid = task.getTid();
+            submitRecordShowVO.setUser(this.fillUserDetails(user, tid));        //之后改为student的，此处为管理员
+
+            if (dto.getContent() == null)
+                return submitRecordShowVO;
+            JSONArray ops = JSONObject.parseObject(dto.getContent()).getJSONArray("ops");
+            List<String> images = new ArrayList<>();
+            StringBuilder text = new StringBuilder();
+            this.shortContent(ops, text, obj -> images.add(obj.toString()));
+            submitRecordShowVO.setText(text.length() > ConstUtil.TASK_PREVIEW_CONTENT_LENGTH
+                    ? text.substring(0, ConstUtil.TASK_PREVIEW_CONTENT_LENGTH)
+                    : text.toString());
+            submitRecordShowVO.setImages(images);
+            return submitRecordShowVO;
+        }).toList();
     }
 }
 

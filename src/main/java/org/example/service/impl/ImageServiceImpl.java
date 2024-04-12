@@ -3,7 +3,6 @@ package org.example.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.minio.*;
-import io.minio.errors.*;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -18,8 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
@@ -57,13 +54,16 @@ public class ImageServiceImpl extends ServiceImpl<ImageStoreMapper, ImageStore> 
         }
     }
     @Override
-    public void fetchImageFromMinio(OutputStream stream, String image) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    public void fetchImageFromMinio(OutputStream stream, String image) {
         GetObjectArgs args = GetObjectArgs.builder()
                 .bucket(ConstUtil.BUCKET_INSTRUCTOR)
                 .object(image)
                 .build();
-        GetObjectResponse response = minioClient.getObject(args);
-        IOUtils.copy(response, stream);
+        try (GetObjectResponse response = minioClient.getObject(args)) {
+            IOUtils.copy(response, stream);
+        }catch (Exception e){
+            log.info("图片获取出现问题" + e.getMessage());
+        }
     }
     private void deleteOldAvatar(String avatar) throws Exception{           //删除旧头像用
         if (avatar == null || avatar.isEmpty()) return;
