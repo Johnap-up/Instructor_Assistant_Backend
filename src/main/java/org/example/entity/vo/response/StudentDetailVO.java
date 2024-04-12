@@ -7,15 +7,23 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class StudentWithTaskVO {
+public class StudentDetailVO {
     private String sid;
     private String name;
     private int gender;
     private String dormitory;
     private String room;
     private int classroom;
-    private int type;
-    private int doneNum;
-    private int totalNum;
+    private String qq;
     private String phone;
+    private String institute;
+    private int grade;
+    private Instructor instructor;
+
+    @Data
+    public static class Instructor{
+        private String tid;
+        private String name;
+        private String phone;
+    }
 }

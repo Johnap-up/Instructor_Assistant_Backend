@@ -3,7 +3,7 @@ package org.example.entity.vo.response.multDataVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.entity.dto.Student;
+import org.example.entity.vo.response.StudentCrudVO;
 
 import java.util.List;
 import java.util.Map;
@@ -12,6 +12,6 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StudentAllInfoVO {
-    List<Student> studentList;
+    List<StudentCrudVO> studentList;
     Map<String, Map<String, String>> map;
 }

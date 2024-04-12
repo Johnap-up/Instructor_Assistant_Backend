@@ -3,8 +3,10 @@ package org.example.controller;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.example.entity.RestBean;
-import org.example.entity.dto.Student;
+import org.example.entity.vo.request.StudentInsertVO;
 import org.example.entity.vo.request.saveDataVO.StudentSavaVO;
+import org.example.entity.vo.response.StudentCrudVO;
+import org.example.entity.vo.response.StudentDetailVO;
 import org.example.entity.vo.response.multDataVO.StudentAllInfoVO;
 import org.example.service.AccountService;
 import org.example.service.StudentService;
@@ -21,8 +23,8 @@ public class StudentController {
     @Resource
     AccountService accountService;
     @GetMapping("/select-student")      //按需获取学生
-    public RestBean<List<Student>> selectStudent(@RequestParam(required = false, value = "name") String name,
-                                                 @RequestParam(required = false, value = "classroom") Integer classroom) {
+    public RestBean<List<StudentCrudVO>> selectStudent(@RequestParam(required = false, value = "name") String name,
+                                                       @RequestParam(required = false, value = "classroom") Integer classroom) {
         return RestBean.success(studentService.getSelectStudents(name, classroom));
     }
     @GetMapping("/done-rate")           //每个任务的完成率
@@ -57,10 +59,13 @@ public class StudentController {
         return result == null ? RestBean.success("修改成功") : RestBean.failure(400, result);
     }
     @PostMapping("/insert-student")
-    public RestBean<String> insertStudent(@RequestBody @Valid Student student) {
-        System.out.println(student);
-        String result = studentService.insertStudent(student);
+    public RestBean<String> insertStudent(@RequestBody @Valid StudentInsertVO vo) {
+        String result = studentService.insertStudent(vo);
         return result == null ? RestBean.success("添加成功") : RestBean.failure(400, result);
+    }
+    @GetMapping("/student-detail")
+    public RestBean<StudentDetailVO> getStudentDetail(@RequestParam(value = "sid") String sid) {
+        return RestBean.success(studentService.getStudentDetail(sid));
     }
 }
 

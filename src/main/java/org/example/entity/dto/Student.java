@@ -28,8 +28,12 @@ public class Student implements BaseData {
     private int classroom;
     @TableField("qq")
     private String qq;
-    @TableField("email")
-    private String email;
     @TableField("phone")
     private String phone;
+    @TableField("institute")
+    private String institute;
+    @TableField("grade")
+    private int grade;
+    @TableField("tid")
+    private String tid;
 }

@@ -17,6 +17,5 @@ public class StudentSavaVO implements BaseData {
     private String room;
     private int classroom;
     private String qq;
-    private String email;
     private String phone;
 }
