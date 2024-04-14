@@ -8,6 +8,7 @@ import org.example.entity.RestBean;
 import org.example.entity.vo.request.SubmitRecordVO;
 import org.example.entity.vo.request.TaskCreateVO;
 import org.example.entity.vo.request.TaskUpdateVO;
+import org.example.entity.vo.request.saveDataVO.StudentRecordSavaVO;
 import org.example.entity.vo.response.SubmitRecordShowVO;
 import org.example.entity.vo.response.TaskDetailVO;
 import org.example.entity.vo.response.TaskPreviewVO;
@@ -44,13 +45,15 @@ public class TaskController {
                                                   @RequestParam @Min(0) int type,
                                                   @RequestParam int year,
                                                   @RequestParam int semester,
-                                                  @RequestAttribute(ConstUtil.ATTR_USER_ID) int id){
-        return RestBean.success(taskService.listTaskByTypeAndPage(type, page + 1, year, semester, id)); //Pagination start from 1
+                                                  @RequestAttribute(ConstUtil.ATTR_USER_ID) int id,
+                                                  @RequestAttribute(ConstUtil.ATTR_ROLE) String role){
+        return RestBean.success(taskService.listTaskByTypeAndPage(type, page + 1, year, semester, id, role)); //Pagination start from 1
     }
     @GetMapping("/list-all-task")
     public RestBean<List<TaskPreviewVO>> listAllTask(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id,
+                                                     @RequestAttribute(ConstUtil.ATTR_ROLE) String role,
                                                      @RequestParam @Min(0) int page){
-        return RestBean.success(taskService.listAllTask(page, id));
+        return RestBean.success(taskService.listAllTask(page, id, role));
     }
     @GetMapping("/task-detail")
     public RestBean<TaskDetailVO> task(@RequestParam @Min(0) String taskId){
@@ -63,12 +66,22 @@ public class TaskController {
     }
     @PostMapping("/submit-record")
     public RestBean<Void> submitRecord(@Valid @RequestBody SubmitRecordVO submitRecordVO,
-                                     @RequestAttribute(ConstUtil.ATTR_USER_ID) int id){         //暂定未id，之后要修改为student
+                                       @RequestAttribute(ConstUtil.ATTR_USER_ID) int id){
         return controllerUtil.messageHandle(() -> taskService.createSubmitRecord(id, submitRecordVO));
     }
     @GetMapping("/records")
     public RestBean<List<SubmitRecordShowVO>> records(@RequestParam @Min(0) String taskId,
                                                       @RequestParam @Min(0) int page){
         return RestBean.success(taskService.submitRecordShow(taskId, page + 1));
+    }
+    @GetMapping("/student-record")
+    public RestBean<SubmitRecordShowVO> studentRecord(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id,
+                                                      @RequestParam String taskId){
+        return RestBean.success(taskService.getStudentRecord(taskId, id));
+    }
+    @PostMapping("/update-student-record")
+    public RestBean<Void> updateStudentRecord(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id,
+                                              @RequestBody @Valid StudentRecordSavaVO vo){
+        return controllerUtil.messageHandle(() -> taskService.updateStudentRecord(id, vo));
     }
 }

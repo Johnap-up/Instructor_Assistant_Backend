@@ -3,6 +3,7 @@ package org.example.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.example.entity.dto.Student;
 import org.example.entity.vo.request.StudentInsertVO;
+import org.example.entity.vo.request.saveDataVO.DetailsStudentSaveVO;
 import org.example.entity.vo.request.saveDataVO.StudentSavaVO;
 import org.example.entity.vo.response.StudentCrudVO;
 import org.example.entity.vo.response.StudentDetailVO;
@@ -18,4 +19,5 @@ public interface StudentService extends IService<Student>{
     String saveStudent(StudentSavaVO studentSavaVO);
     String insertStudent(StudentInsertVO vo);
     StudentDetailVO getStudentDetail(String sid);
+    boolean studentSettingSave(int id, DetailsStudentSaveVO vo);
 }

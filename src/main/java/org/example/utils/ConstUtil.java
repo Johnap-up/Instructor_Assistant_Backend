@@ -32,6 +32,7 @@ public class ConstUtil {
 
     //前端保存Token的字段
     public static final String ATTR_USER_ID = "id";
+    public static final String ATTR_ROLE = "role";
 
     //用到的Minio bucket
     public static final String BUCKET_INSTRUCTOR = "instructor";

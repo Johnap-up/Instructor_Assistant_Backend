@@ -4,6 +4,7 @@ import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.example.entity.RestBean;
 import org.example.entity.vo.request.StudentInsertVO;
+import org.example.entity.vo.request.saveDataVO.DetailsStudentSaveVO;
 import org.example.entity.vo.request.saveDataVO.StudentSavaVO;
 import org.example.entity.vo.response.StudentCrudVO;
 import org.example.entity.vo.response.StudentDetailVO;
@@ -53,7 +54,7 @@ public class StudentController {
         int i = studentService.deleteStudent(deleteList);
         return RestBean.success("成功删除" + i + "个学生");
     }
-    @PostMapping("/save-student")
+    @PostMapping("/save-student")           //教师端修改学生信息
     public RestBean<String> saveStudent(@RequestBody StudentSavaVO studentSavaVO) {
         String result =studentService.saveStudent(studentSavaVO);
         return result == null ? RestBean.success("修改成功") : RestBean.failure(400, result);
@@ -66,6 +67,13 @@ public class StudentController {
     @GetMapping("/student-detail")
     public RestBean<StudentDetailVO> getStudentDetail(@RequestParam(value = "sid") String sid) {
         return RestBean.success(studentService.getStudentDetail(sid));
+    }
+    @PostMapping("/save-student-details")       //学生自行修改setting的信息
+    public RestBean<String> saveStudentDetails(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id,
+                                               @RequestBody @Valid DetailsStudentSaveVO vo){
+        return studentService.studentSettingSave(id, vo) ?
+                RestBean.success("保存成功") :
+                RestBean.failure(400, "保存失败");
     }
 }
 

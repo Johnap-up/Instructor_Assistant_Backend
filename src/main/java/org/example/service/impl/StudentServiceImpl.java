@@ -6,6 +6,7 @@ import jakarta.annotation.Resource;
 import org.example.entity.dto.AccountDetails;
 import org.example.entity.dto.Student;
 import org.example.entity.vo.request.StudentInsertVO;
+import org.example.entity.vo.request.saveDataVO.DetailsStudentSaveVO;
 import org.example.entity.vo.request.saveDataVO.StudentSavaVO;
 import org.example.entity.vo.response.StudentDetailVO;
 import org.example.entity.vo.response.StudentTaskRate;
@@ -95,5 +96,12 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
             instructor.setName(accountDetails.getName());
             instructor.setPhone(accountDetails.getPhone());
         })));
+    }
+
+    @Override
+    public boolean studentSettingSave(int id, DetailsStudentSaveVO vo) {
+        return this.update().eq("sid", accountMapper.selectById(id).getUsername())
+                .set("phone", vo.getPhone())
+                .set("qq", vo.getQq()).update();
     }
 }

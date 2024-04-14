@@ -10,6 +10,7 @@ import org.example.entity.vo.request.ModifyEmailVO;
 import org.example.entity.vo.request.saveDataVO.DetailSaveVO;
 import org.example.entity.vo.response.AccountDetailsVO;
 import org.example.entity.vo.response.AccountVO;
+import org.example.mapper.StudentMapper;
 import org.example.service.AccountDetailsService;
 import org.example.service.AccountService;
 import org.example.utils.ConstUtil;
@@ -26,11 +27,21 @@ public class AccountController {
     @Resource
     AccountDetailsService accountDetailsService;
     @Resource
+    StudentMapper studentMapper;
+    @Resource
     ControllerUtil controllerUtil;
     @GetMapping("/info")
-    public RestBean<AccountVO> info(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id){
+    public RestBean<AccountVO> info(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id,
+                                    @RequestAttribute(ConstUtil.ATTR_ROLE) String role){
         Account account = accountService.findAccountById(id);
-        String name = accountDetailsService.findAccountDetailsById(id).getName();
+        String name;
+        if ("instructor".equals(role))
+            name = accountDetailsService.findAccountDetailsById(id).getName();
+        else if ("student".equals(role))
+            name = studentMapper.selectNameBySid(account.getUsername());
+        else {
+            name = account.getUsername();
+        }
         return RestBean.success(account.asViewObject(AccountVO.class, accountVO -> accountVO.setName(name)));
     }
     @GetMapping("/details")

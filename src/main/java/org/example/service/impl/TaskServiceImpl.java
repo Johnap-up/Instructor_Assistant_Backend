@@ -13,6 +13,7 @@ import org.example.entity.dto.*;
 import org.example.entity.vo.request.SubmitRecordVO;
 import org.example.entity.vo.request.TaskCreateVO;
 import org.example.entity.vo.request.TaskUpdateVO;
+import org.example.entity.vo.request.saveDataVO.StudentRecordSavaVO;
 import org.example.entity.vo.response.SubmitRecordShowVO;
 import org.example.entity.vo.response.TaskDetailVO;
 import org.example.entity.vo.response.TaskPreviewVO;
@@ -40,6 +41,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     private CacheUtil cacheUtil;
     @Resource
     AccountMapper accountMapper;
+    @Resource
+    StudentMapper studentMapper;
     @Resource
     StudentTaskRecordMapper studentTaskRecordMapper;
     private Set<Integer> types = null;
@@ -76,7 +79,6 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         task.setSequence(aidYearSemester.getSequence());
         task.setSemester(aidYearSemester.getSemester());
         task.setYear(aidYearSemester.getYear());
-        System.out.println(task);
         if (save(task)) {
             //要修改缓存
             cacheUtil.deleteCache(ConstUtil.TASK_PREVIEW_CACHE + "*");
@@ -126,8 +128,12 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     }
 
     @Override
-    public List<TaskPreviewVO> listTaskByTypeAndPage(int type, int page, int year, int semester, int id) {
-        String tid = accountMapper.getTidById(id);          //获取tid
+    public List<TaskPreviewVO> listTaskByTypeAndPage(int type, int page, int year, int semester, int id, String role) {
+        String tid;
+        if ("instructor".equals(role))
+            tid = accountMapper.getTidById(id);
+        else
+            tid = studentMapper.selectStudentById(id).getTid();
         String key = ConstUtil.TASK_PREVIEW_CACHE + tid + ":" + page + ":" + type + ":" + semester + ":" + year;
         List<TaskPreviewVO> list = cacheUtil.takeListFromCache(key, TaskPreviewVO.class);
         if (list != null) return list;
@@ -147,7 +153,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 //            tasks = taskMapper.taskListByType(year, semester, tid, type, page * ConstUtil.TASK_PAGE_SIZE);
         }
         tasks = mybatisPage.getRecords();
-        return getTaskPreviewVOS(id, key, tasks);
+        return getTaskPreviewVOS(tid, key, tasks);
     }
     private TaskPreviewVO taskToTaskPreviewVO(Task task){
         TaskPreviewVO taskPreviewVO = new TaskPreviewVO();
@@ -178,21 +184,25 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     }
 
     @Override
-    public List<TaskPreviewVO> listAllTask(int page, int id) {
-        String tid = accountMapper.getTidById(id);          //获取tid
+    public List<TaskPreviewVO> listAllTask(int page, int id, String role) {
+        String tid;
+        if ("instructor".equals(role))
+            tid = accountMapper.getTidById(id);
+        else
+            tid = studentMapper.selectStudentById(id).getTid();
         String key = ConstUtil.TASK_PREVIEW_CACHE + page;
         List<TaskPreviewVO> list = cacheUtil.takeListFromCache(key, TaskPreviewVO.class);
         if (list != null) return list;
         List<Task> tasks;
         tasks = taskMapper.listAll(tid, page * ConstUtil.TASK_PAGE_SIZE);
-        return getTaskPreviewVOS(id, key, tasks);
+        return getTaskPreviewVOS(tid, key, tasks);
     }
     @Nullable
-    private List<TaskPreviewVO> getTaskPreviewVOS(int id, String key, List<Task> tasks) {
+    private List<TaskPreviewVO> getTaskPreviewVOS(String tid, String key, List<Task> tasks) {
         List<TaskPreviewVO> list;
         if (tasks.isEmpty()) return null;
         list = tasks.stream().map(this::taskToTaskPreviewVO).toList();
-        String name = accountDetailsMapper.selectById(id).getName();
+        String name = accountDetailsMapper.selectByTid(tid).getName();
         for (TaskPreviewVO taskPreviewVO : list)
             taskPreviewVO.setName(name);
         cacheUtil.saveListToCache(key, list, ConstUtil.TASK_PREVIEW_CACHE_EXPIRE);
@@ -240,9 +250,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         if(!textLimitCheck(JSONObject.parseObject(submitRecordVO.getContent()),200))
             return "内容过长，发送失败";
         StudentTaskRecord studentTaskRecord = new StudentTaskRecord();
-        // 复制了taskId和content，还剩下sid, isDone, IsOK, submitTime
+        // 复制了taskId, content, title，还剩下sid, isDone, IsOK, submitTime
         BeanUtils.copyProperties(submitRecordVO, studentTaskRecord);
-        studentTaskRecord.setSid(accountMapper.getTidById(id));     //暂时用管理员的tid，而非学生的学号之类的
+        studentTaskRecord.setSid(studentMapper.selectStudentById(id).getSid());
         studentTaskRecord.setSubmitTime(new Date());
         studentTaskRecord.setOK(true);
         studentTaskRecord.setDone(true);
@@ -254,27 +264,54 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     public List<SubmitRecordShowVO> submitRecordShow(String taskId, int pageNumber) {
         Page<StudentTaskRecord> page = Page.of(pageNumber, ConstUtil.TASK_PAGE_SIZE);
         studentTaskRecordMapper.selectPage(page, Wrappers.<StudentTaskRecord>query().eq("taskId", taskId).orderByAsc("submitTime"));
-        return page.getRecords().stream().map(dto -> {
-            SubmitRecordShowVO submitRecordShowVO = new SubmitRecordShowVO();
-            //copy了content，id, submitTime,还差text和images
-            BeanUtils.copyProperties(dto, submitRecordShowVO);
-            SubmitRecordShowVO.User user = new SubmitRecordShowVO.User();
-            Task task = taskMapper.selectById(taskId);
-            String tid = task.getTid();
-            submitRecordShowVO.setUser(this.fillUserDetails(user, tid));        //之后改为student的，此处为管理员
+        return page.getRecords().stream().map(this::convertToSRS).toList();
+    }
+    private SubmitRecordShowVO convertToSRS(StudentTaskRecord dto){
+        SubmitRecordShowVO submitRecordShowVO = new SubmitRecordShowVO();
+        //copy了content，id, submitTime, title, 还差text和images和user
+        BeanUtils.copyProperties(dto, submitRecordShowVO);
+        SubmitRecordShowVO.User user = new SubmitRecordShowVO.User();
+        String sid = dto.getSid();
+        submitRecordShowVO.setUser(this.fillUserStudentDetail(user, sid));        //之后改为student的，此处为管理员
 
-            if (dto.getContent() == null)
-                return submitRecordShowVO;
-            JSONArray ops = JSONObject.parseObject(dto.getContent()).getJSONArray("ops");
-            List<String> images = new ArrayList<>();
-            StringBuilder text = new StringBuilder();
-            this.shortContent(ops, text, obj -> images.add(obj.toString()));
-            submitRecordShowVO.setText(text.length() > ConstUtil.TASK_PREVIEW_CONTENT_LENGTH
-                    ? text.substring(0, ConstUtil.TASK_PREVIEW_CONTENT_LENGTH)
-                    : text.toString());
-            submitRecordShowVO.setImages(images);
+        if (dto.getContent() == null)
             return submitRecordShowVO;
-        }).toList();
+        JSONArray ops = JSONObject.parseObject(dto.getContent()).getJSONArray("ops");
+        List<String> images = new ArrayList<>();
+        StringBuilder text = new StringBuilder();
+        this.shortContent(ops, text, obj -> images.add(obj.toString()));
+        submitRecordShowVO.setText(text.length() > ConstUtil.TASK_PREVIEW_CONTENT_LENGTH
+                ? text.substring(0, ConstUtil.TASK_PREVIEW_CONTENT_LENGTH)
+                : text.toString());
+        submitRecordShowVO.setImages(images);
+        return submitRecordShowVO;
+    }
+    private <T> T fillUserStudentDetail(T target, String sid){
+        Account account = accountMapper.getAccountByUsername(sid);
+        Student student = studentMapper.selectById(sid);
+        BeanUtils.copyProperties(account, target);
+        BeanUtils.copyProperties(student, target);
+        return target;
+    }
+    @Override
+    public SubmitRecordShowVO getStudentRecord(String taskId, int id) {
+        String sid = studentMapper.selectStudentById(id).getSid();
+        StudentTaskRecord dto = studentTaskRecordMapper.selectOne(Wrappers.<StudentTaskRecord>query().eq("taskId",taskId).eq("sid", sid));
+        return dto == null ? null : this.convertToSRS(dto);
+    }
+
+    @Override
+    public String updateStudentRecord(int id, StudentRecordSavaVO vo) {
+        if (!textLimitCheck(JSONObject.parseObject(vo.getContent()), 200))
+            return "内容过长，更新失败";
+        String sid = studentMapper.selectStudentById(id).getSid();
+        boolean flag = studentTaskRecordMapper.update(null, Wrappers.<StudentTaskRecord>update()
+                .eq("taskId", vo.getTaskId())
+                .eq("sid", sid)
+                .set("content", vo.getContent())
+                .set("title", vo.getTitle())
+        ) > 0;
+        return flag ? null : "更新失败";
     }
 }
 

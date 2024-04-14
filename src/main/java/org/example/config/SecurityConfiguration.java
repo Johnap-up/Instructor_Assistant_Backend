@@ -80,17 +80,18 @@ public class SecurityConfiguration {
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json");
         final PrintWriter writer = response.getWriter();
-        writer.write(RestBean.failure(401,"登录失败，账号或密码错误").asJsonString());
+        writer.write(RestBean.failure(401,"登录失败，账号或密码或身份错误").asJsonString());
     }
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json");
         User user = (User) authentication.getPrincipal();
         Account account = service.findByUsernameOrEmail(user.getUsername());
+        String role = account.getRole();
 //        System.out.println(request.getParameterMap().entrySet());
 //        System.out.println(request.getParameter("hello"));
 //        System.out.println(Arrays.toString(request.getParameterValues("remember")));
-        String token = jwtUtil.createJwt(user, account.getId(), account.getUsername());
+        String token = jwtUtil.createJwt(user, account.getId(), account.getUsername(), role);
         AuthorizeVO authorizeVO = account.asViewObject(AuthorizeVO.class, authorizeVO1 -> {
             authorizeVO1.setExpire(jwtUtil.getExpireTime());
             authorizeVO1.setToken(token);

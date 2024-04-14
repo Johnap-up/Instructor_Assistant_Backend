@@ -9,4 +9,7 @@ import org.example.entity.dto.Account;
 public interface AccountMapper extends BaseMapper<Account> {
     @Select("select tid from account_detail where id = #{id}")
     String getTidById(int id);
+
+    @Select("select * from account where username = #{username}")
+    Account getAccountByUsername(String username);
 }

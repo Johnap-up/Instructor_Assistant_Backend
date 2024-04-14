@@ -24,7 +24,7 @@ public class ObjectController {
         this.fetchImage(request, response);
     }
     private void fetchImage(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String imagePath = request.getServletPath().substring(6);           //7-->"/image"
+        String imagePath = request.getServletPath().substring(6);           //6-->"/image"
 
         ServletOutputStream stream = response.getOutputStream();
         if (imagePath.length() < 13){                   //因为有UUID所以一定特别大

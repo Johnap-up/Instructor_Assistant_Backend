@@ -30,6 +30,10 @@ public interface StudentMapper extends BaseMapper<Student> {
     @Select("select COUNT(*) from task_type;")
     int selectTaskCount();
 
+    @Select("select name from student where sid = #{sid}")
+    String selectNameBySid(@Param("sid") String sid);
+    @Select("select * from student where id = #{id}")
+    Student selectStudentById(@Param("id") int id);
 }
 
 

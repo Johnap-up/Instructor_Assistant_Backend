@@ -54,6 +54,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
                 .eq("email", usernameOrEmail)
                 .one();
     }
+
     @Override
     public String registerEmailVerifyCode(String type, String email, String ip) {       //虽然名字叫register但就是用来发送验证码的，适合所有类型
         synchronized (ip.intern()){         //加锁，防止多线程
