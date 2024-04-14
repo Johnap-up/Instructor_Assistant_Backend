@@ -21,12 +21,12 @@ import org.example.mapper.*;
 import org.example.service.TaskService;
 import org.example.utils.CacheUtil;
 import org.example.utils.ConstUtil;
+import org.example.utils.ServiceImplUtil;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,6 +45,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     StudentMapper studentMapper;
     @Resource
     StudentTaskRecordMapper studentTaskRecordMapper;
+    @Resource
+    CheckRoomRecordMapper checkRoomRecordMapper;
+
     private Set<Integer> types = null;
     @PostConstruct
     private void init(){
@@ -60,7 +63,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
     @Override
     public String createTask(int uid, TaskCreateVO taskCreateVO) {
-        if (!textLimitCheck(taskCreateVO.getContent(), 20000))
+        if (ServiceImplUtil.textLimitCheck(taskCreateVO.getContent(), 20000))
             return "文章内容过长，发送失败";
         if (!types.contains(taskCreateVO.getType()))
             return "任务类型不存在";
@@ -86,15 +89,6 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         }else {
             return "内部错误，请联系管理员";
         }
-    }
-    private boolean textLimitCheck(JSONObject object, int max){
-        if (object == null) return false;
-        long length = 0;
-        for (Object op : object.getJSONArray("ops")){
-            length += JSONObject.from(op).getString("insert").length();
-            if (length > max) return false;
-        }
-        return true;
     }
     private AidYearSemester genAid(int type, String tid){            //需要定义学期是如何定义的，假定9月开学，3月开学
         Calendar cal = Calendar.getInstance();
@@ -163,24 +157,12 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         List<String> images = new ArrayList<>();
         StringBuilder previewText = new StringBuilder();
         JSONArray ops = JSONObject.parseObject(task.getContent()).getJSONArray("ops");      //quill文本内容
-        this.shortContent(ops, previewText, obj -> images.add(obj.toString()));
+        ServiceImplUtil.shortContent(ops, previewText, obj -> images.add(obj.toString()));
         taskPreviewVO.setText(previewText.length() > ConstUtil.TASK_PREVIEW_CONTENT_LENGTH
                 ? previewText.substring(0, ConstUtil.TASK_PREVIEW_CONTENT_LENGTH)
                 : previewText.toString());
         taskPreviewVO.setImages(images);
         return taskPreviewVO;
-    }
-    private void shortContent(JSONArray ops, StringBuilder previewText, Consumer<Object> imageHandler){
-        for (Object op : ops) {
-            Object insert = JSONObject.from(op).get("insert");
-            if (insert instanceof String text){
-                if (previewText.length() >= ConstUtil.TASK_PREVIEW_CONTENT_LENGTH) continue;      //300
-                previewText.append(text);
-            }else if (insert instanceof Map<?, ?> map){
-                Optional.ofNullable(map.get("image"))
-                        .ifPresent(imageHandler);
-            }
-        }
     }
 
     @Override
@@ -217,7 +199,10 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         TaskDetailVO.User user = new TaskDetailVO.User();
         String tid = task.getTid();
         taskDetailVO.setUser(this.fillUserDetails(user, tid));
-        taskDetailVO.setRecordAmount(studentTaskRecordMapper.selectCount(Wrappers.<StudentTaskRecord>query().eq("taskId", taskId)));
+        if (task.getType() == 2)
+            taskDetailVO.setRecordAmount(checkRoomRecordMapper.selectCount(Wrappers.<CheckRoomRecord>query().eq("taskId", taskId)));
+        else
+            taskDetailVO.setRecordAmount(studentTaskRecordMapper.selectCount(Wrappers.<StudentTaskRecord>query().eq("taskId", taskId)));
         return taskDetailVO;
     }
     private <T> T fillUserDetails(T target, String tid){
@@ -230,7 +215,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
     @Override
     public String updateTask(int id, TaskUpdateVO taskUpdateVO) {
-        if (!textLimitCheck(taskUpdateVO.getContent(), 20000))
+        if (ServiceImplUtil.textLimitCheck(taskUpdateVO.getContent(), 20000))
             return "内容过长，更新失败";
         if (!types.contains(taskUpdateVO.getType()))
             return "任务类型不存在";
@@ -247,7 +232,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
     @Override
     public String createSubmitRecord(int id, SubmitRecordVO submitRecordVO) {
-        if(!textLimitCheck(JSONObject.parseObject(submitRecordVO.getContent()),200))
+        if(ServiceImplUtil.textLimitCheck(JSONObject.parseObject(submitRecordVO.getContent()), 200))
             return "内容过长，发送失败";
         StudentTaskRecord studentTaskRecord = new StudentTaskRecord();
         // 复制了taskId, content, title，还剩下sid, isDone, IsOK, submitTime
@@ -277,14 +262,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         if (dto.getContent() == null)
             return submitRecordShowVO;
         JSONArray ops = JSONObject.parseObject(dto.getContent()).getJSONArray("ops");
-        List<String> images = new ArrayList<>();
-        StringBuilder text = new StringBuilder();
-        this.shortContent(ops, text, obj -> images.add(obj.toString()));
-        submitRecordShowVO.setText(text.length() > ConstUtil.TASK_PREVIEW_CONTENT_LENGTH
-                ? text.substring(0, ConstUtil.TASK_PREVIEW_CONTENT_LENGTH)
-                : text.toString());
-        submitRecordShowVO.setImages(images);
-        return submitRecordShowVO;
+        return ServiceImplUtil.setTextAndImages(submitRecordShowVO, ops);
     }
     private <T> T fillUserStudentDetail(T target, String sid){
         Account account = accountMapper.getAccountByUsername(sid);
@@ -302,7 +280,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
     @Override
     public String updateStudentRecord(int id, StudentRecordSavaVO vo) {
-        if (!textLimitCheck(JSONObject.parseObject(vo.getContent()), 200))
+        if (ServiceImplUtil.textLimitCheck(JSONObject.parseObject(vo.getContent()), 200))
             return "内容过长，更新失败";
         String sid = studentMapper.selectStudentById(id).getSid();
         boolean flag = studentTaskRecordMapper.update(null, Wrappers.<StudentTaskRecord>update()

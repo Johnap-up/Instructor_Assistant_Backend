@@ -27,13 +27,24 @@ public interface StudentMapper extends BaseMapper<Student> {
             "where t.taskId = str.taskId and t.year = #{year} and t.semester = #{semester} and t.tid = #{tid} and t.type = #{type} group by str.sid")
     List<StudentTaskRate> getFinishRate(@Param("year") int year, @Param("semester") int semester, @Param("tid") String tid, @Param("type") int type);
 
+    @Select("select MAX(t.sequence) as 'totalNum'" +
+            "from task t " +
+            "where t.year = #{year} and t.semester = #{semester} and t.tid = #{tid} and t.type = #{type}")
+    int getTotalNum(@Param("year") int year, @Param("semester") int semester, @Param("tid") String tid, @Param("type") int type);
+
     @Select("select COUNT(*) from task_type;")
     int selectTaskCount();
+
+    @Select("select sid from student")
+    List<String> selectAllSid();
 
     @Select("select name from student where sid = #{sid}")
     String selectNameBySid(@Param("sid") String sid);
     @Select("select * from student where id = #{id}")
     Student selectStudentById(@Param("id") int id);
+
+    @Select("select name from student where dormitory = #{dormitory} and room = #{room}")
+    List<String> selectStudentByDormitoryAndRoom(@Param("dormitory") String dormitory, @Param("room") String room);
 }
 
 
