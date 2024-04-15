@@ -14,6 +14,7 @@ import org.example.entity.vo.response.StudentCrudVO;
 import org.example.mapper.AccountDetailsMapper;
 import org.example.mapper.AccountMapper;
 import org.example.mapper.StudentMapper;
+import org.example.service.AccountService;
 import org.example.service.StudentService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -30,23 +31,25 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     @Resource
     AccountMapper accountMapper;
     @Resource
+    AccountService accountService;
+    @Resource
     AccountDetailsMapper accountDetailsMapper;
     @Override
     public List<StudentCrudVO> getSelectStudents(String name, Integer classroom) {
-        String email = "tukumij@gmail.com";                 //本应是下面的，但由于还没在account表中添加学生信息，所以暂时用固定的
-//        String email = accountMapper.selectOne(Wrappers.<Account>query().eq("username", name)).getEmail();
+        System.out.println(name + ", class: "+classroom);
+        Map<String, String> map = accountService.getAllStudentIdEmail();
         if (name != null && classroom != null){
             return studentMapper.selectStudentByNameAndClassroom(name, classroom).stream()
-                    .map(student -> student.asViewObject(StudentCrudVO.class, vo -> vo.setEmail(email))).toList();
+                    .map(student -> student.asViewObject(StudentCrudVO.class, vo -> vo.setEmail(map.get(student.getSid())))).toList();
         }else if (name != null){
             return studentMapper.selectStudentByName(name).stream()
-                    .map(student -> student.asViewObject(StudentCrudVO.class, vo -> vo.setEmail(email))).toList();
+                    .map(student -> student.asViewObject(StudentCrudVO.class, vo -> vo.setEmail(map.get(student.getSid())))).toList();
         }else if (classroom != null) {
             return studentMapper.selectStudentByClassroom(classroom).stream()
-                    .map(student -> student.asViewObject(StudentCrudVO.class, vo -> vo.setEmail(email))).toList();
+                    .map(student -> student.asViewObject(StudentCrudVO.class, vo -> vo.setEmail(map.get(student.getSid())))).toList();
         }else{
             return studentMapper.selectAllStudent().stream()
-                    .map(student -> student.asViewObject(StudentCrudVO.class, vo -> vo.setEmail(email))).toList();
+                    .map(student -> student.asViewObject(StudentCrudVO.class, vo -> vo.setEmail(map.get(student.getSid())))).toList();
         }
     }
     @Override

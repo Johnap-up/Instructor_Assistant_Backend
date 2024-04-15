@@ -10,6 +10,7 @@ import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.example.entity.dto.*;
+import org.example.entity.dto.charts.DoUndo;
 import org.example.entity.vo.request.SubmitRecordVO;
 import org.example.entity.vo.request.TaskCreateVO;
 import org.example.entity.vo.request.TaskUpdateVO;
@@ -82,7 +83,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         task.setSequence(aidYearSemester.getSequence());
         task.setSemester(aidYearSemester.getSemester());
         task.setYear(aidYearSemester.getYear());
-        if (save(task)) {
+        if (taskMapper.insert(task) > 0) {
             //要修改缓存
             cacheUtil.deleteCache(ConstUtil.TASK_PREVIEW_CACHE + "*");
             return null;
@@ -108,7 +109,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         latestSequence = latestSequence == null ? 1 : latestSequence + 1;
         String aidType = type > 9 ? "" + type : "0" + type;
         String strSequence = latestSequence > 9 ? "" + latestSequence : "0" + latestSequence;
-        String aid = aidType + strYear + semester + strSequence;
+        String aid = aidType + strYear + semester + strSequence + tid;
         return new AidYearSemester(aid, year, semester, latestSequence);
     }
     @Data
@@ -200,9 +201,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         String tid = task.getTid();
         taskDetailVO.setUser(this.fillUserDetails(user, tid));
         if (task.getType() == 2)
-            taskDetailVO.setRecordAmount(checkRoomRecordMapper.selectCount(Wrappers.<CheckRoomRecord>query().eq("taskId", taskId)));
+            taskDetailVO.setRecordAmount(checkRoomRecordMapper.selectCount(Wrappers.<CheckRoomRecord>query().eq("taskId", taskId).eq("isDone", true)));
         else
-            taskDetailVO.setRecordAmount(studentTaskRecordMapper.selectCount(Wrappers.<StudentTaskRecord>query().eq("taskId", taskId)));
+            taskDetailVO.setRecordAmount(studentTaskRecordMapper.selectCount(Wrappers.<StudentTaskRecord>query().eq("taskId", taskId).eq("isDone", true)));
         return taskDetailVO;
     }
     private <T> T fillUserDetails(T target, String tid){
@@ -231,24 +232,18 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     }
 
     @Override
-    public String createSubmitRecord(int id, SubmitRecordVO submitRecordVO) {
-        if(ServiceImplUtil.textLimitCheck(JSONObject.parseObject(submitRecordVO.getContent()), 200))
+    public String createSubmitRecord(int id, SubmitRecordVO vo) {
+        if(ServiceImplUtil.textLimitCheck(JSONObject.parseObject(vo.getContent()), 200))
             return "内容过长，发送失败";
-        StudentTaskRecord studentTaskRecord = new StudentTaskRecord();
-        // 复制了taskId, content, title，还剩下sid, isDone, IsOK, submitTime
-        BeanUtils.copyProperties(submitRecordVO, studentTaskRecord);
-        studentTaskRecord.setSid(studentMapper.selectStudentById(id).getSid());
-        studentTaskRecord.setSubmitTime(new Date());
-        studentTaskRecord.setOK(true);
-        studentTaskRecord.setDone(true);
-        studentTaskRecordMapper.insert(studentTaskRecord);
-        return null;
+        Boolean flag = studentTaskRecordMapper.updateSTRByTaskId(vo.getTaskId(),
+                studentMapper.selectStudentById(id).getSid(), true, null, new Date(), vo.getContent(), vo.getTitle());
+        return flag ? null : "提交失败，请联系管理员";
     }
 
     @Override
     public List<SubmitRecordShowVO> submitRecordShow(String taskId, int pageNumber) {
         Page<StudentTaskRecord> page = Page.of(pageNumber, ConstUtil.TASK_PAGE_SIZE);
-        studentTaskRecordMapper.selectPage(page, Wrappers.<StudentTaskRecord>query().eq("taskId", taskId).orderByAsc("submitTime"));
+        studentTaskRecordMapper.selectPage(page, Wrappers.<StudentTaskRecord>query().eq("taskId", taskId).eq("isDone", true).orderByAsc("submitTime"));
         return page.getRecords().stream().map(this::convertToSRS).toList();
     }
     private SubmitRecordShowVO convertToSRS(StudentTaskRecord dto){
@@ -274,7 +269,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     @Override
     public SubmitRecordShowVO getStudentRecord(String taskId, int id) {
         String sid = studentMapper.selectStudentById(id).getSid();
-        StudentTaskRecord dto = studentTaskRecordMapper.selectOne(Wrappers.<StudentTaskRecord>query().eq("taskId",taskId).eq("sid", sid));
+        StudentTaskRecord dto = studentTaskRecordMapper.selectOne(Wrappers.<StudentTaskRecord>query().eq("taskId",taskId).eq("sid", sid).eq("isDone", true));
         return dto == null ? null : this.convertToSRS(dto);
     }
 
@@ -290,6 +285,14 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
                 .set("title", vo.getTitle())
         ) > 0;
         return flag ? null : "更新失败";
+    }
+
+    @Override
+    public Map<String, List<DoUndo>> doUndo(String taskId) {
+        Map<String, List<DoUndo>> map = new HashMap<>();
+        map.put("do", studentMapper.selectDoUndo(taskId, true));
+        map.put("undo", studentMapper.selectDoUndo(taskId, false));
+        return map;
     }
 }
 

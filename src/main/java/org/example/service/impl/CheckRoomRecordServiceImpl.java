@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
 import org.example.entity.dto.CheckRoomRecord;
 import org.example.entity.dto.Student;
+import org.example.entity.dto.charts.CRRDoUndo;
 import org.example.entity.vo.request.CRRSubmitVO;
 import org.example.entity.vo.request.saveDataVO.CRRSaveVO;
 import org.example.entity.vo.response.CheckRoomRecordShowVO;
@@ -20,7 +21,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class CheckRoomRecordServiceImpl extends ServiceImpl<CheckRoomRecordMapper, CheckRoomRecord> implements CheckRoomRecordService {
@@ -35,6 +38,7 @@ public class CheckRoomRecordServiceImpl extends ServiceImpl<CheckRoomRecordMappe
         String room = student.getRoom();
         List<String> roomMates = studentMapper.selectStudentByDormitoryAndRoom(dormitory, room);
         CheckRoomRecord dto = baseMapper.selectOne(Wrappers.<CheckRoomRecord>query()
+                .eq("isDone", true)
                 .eq("taskId", taskId)
                 .eq("dormitory", dormitory)
                 .eq("room", room));
@@ -56,13 +60,15 @@ public class CheckRoomRecordServiceImpl extends ServiceImpl<CheckRoomRecordMappe
         String dormitory = student.getDormitory();
         String room = student.getRoom();
         CheckRoomRecord temp = baseMapper.selectOne(Wrappers.<CheckRoomRecord>query()
+                .eq("isDone", true)
                 .eq("taskId", vo.getTaskId())
                 .eq("dormitory", dormitory)
                 .eq("room", room));
         if (temp != null)
             return "已提交过该任务的记录";
-        CheckRoomRecord dto = new CheckRoomRecord(null, dormitory, room, vo.getTaskId(), new Date(), vo.getContent(), vo.getTitle(), true);
-        return checkRoomRecordMapper.insert(dto) > 0 ? null : "提交失败";
+        boolean flag = checkRoomRecordMapper.updateCRR(vo.getTaskId(), dormitory, room, new Date(), vo.getContent(), vo.getTitle(), true);
+//        CheckRoomRecord dto = new CheckRoomRecord(null, dormitory, room, vo.getTaskId(), new Date(), vo.getContent(), vo.getTitle(), true);
+        return flag ? null : "提交失败, 请联系管理员";
     }
 
     @Override
@@ -84,8 +90,16 @@ public class CheckRoomRecordServiceImpl extends ServiceImpl<CheckRoomRecordMappe
     @Override
     public List<CheckRoomRecordShowVO> getAllRecords(String taskId, int pageNum) {
         Page<CheckRoomRecord> page = Page.of(pageNum, ConstUtil.TASK_PAGE_SIZE);
-        checkRoomRecordMapper.selectPage(page, Wrappers.<CheckRoomRecord>query().eq("taskId", taskId).orderByAsc("submitTime"));
+        checkRoomRecordMapper.selectPage(page, Wrappers.<CheckRoomRecord>query().eq("taskId", taskId).eq("isDone", true).orderByAsc("submitTime"));
         return page.getRecords().stream().map(this::convertToCRRShowVO).toList();
+    }
+
+    @Override
+    public Map<String, List<CRRDoUndo>> getDoUndo(String taskId) {
+        Map<String, List<CRRDoUndo>> map = new HashMap<>();
+        map.put("do", checkRoomRecordMapper.getDoUndo(taskId, true));
+        map.put("undo", checkRoomRecordMapper.getDoUndo(taskId, false));
+        return map;
     }
 
     private CheckRoomRecordShowVO convertToCRRShowVO(CheckRoomRecord dto){

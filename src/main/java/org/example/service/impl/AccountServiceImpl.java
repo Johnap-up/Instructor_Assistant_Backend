@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> implements AccountService{
@@ -163,6 +164,12 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         boolean result = this.update().eq("id",id).set("password", encoder.encode(changePasswordVO.getNew_password())).update();
         return result ? null : "内部错误，请联系管理员";
     }
+
+    @Override
+    public Map<String, String> getAllStudentIdEmail() {
+        return accountMapper.getAllStudentAccount().stream().collect(Collectors.toMap(key -> key.username, val -> val.email != null ? val.email : "无"));
+    }
+
     @Override
     public String findTidById(int id) {
         return accountMapper.getTidById(id);

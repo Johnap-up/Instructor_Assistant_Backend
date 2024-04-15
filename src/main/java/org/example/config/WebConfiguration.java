@@ -12,12 +12,7 @@ public class WebConfiguration {
     BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-//    @Bean
-//    public PaginationInnerInterceptor paginationInnerInterceptor(){
-//        PaginationInnerInterceptor paginationInnerInterceptor = new PaginationInnerInterceptor(DbType.MYSQL);
-//        paginationInnerInterceptor.setMaxLimit(100L);
-//        return paginationInnerInterceptor;
-//    }
+
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor(){
         MybatisPlusInterceptor mybatisPlusInterceptor = new MybatisPlusInterceptor();

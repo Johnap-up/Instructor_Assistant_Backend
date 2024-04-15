@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.example.entity.dto.Student;
+import org.example.entity.dto.charts.DoUndo;
 import org.example.entity.vo.response.StudentTaskRate;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public interface StudentMapper extends BaseMapper<Student> {
     @Select("select * from student where classroom = #{classroom}")
     List<Student> selectStudentByClassroom(@Param("classroom") int classroom);
     @Select("select * from student where name = #{name} and classroom = #{classroom}")
-    List<Student> selectStudentByNameAndClassroom(@Param("name") String name, @Param("classroom") int classroom);
+    List<Student> selectStudentByNameAndClassroom(@Param("name") String name, @Param("classroom") Integer classroom);
 
     //考勤部分
     @Select("select str.sid, t.type, sum(str.isDone) as doneNum, MAX(t.sequence) as 'totalNum'" +
@@ -45,6 +46,12 @@ public interface StudentMapper extends BaseMapper<Student> {
 
     @Select("select name from student where dormitory = #{dormitory} and room = #{room}")
     List<String> selectStudentByDormitoryAndRoom(@Param("dormitory") String dormitory, @Param("room") String room);
+
+    @Select("select s.id, s.sid, s.name, s.qq from student_task_record str left join student s on str.sid = s.sid where str.isDone = #{isDone} and str.taskId = #{taskId}")
+    List<DoUndo> selectDoUndo(@Param("taskId") String taskId, @Param("isDone") boolean isDone);
+
+
+
 }
 
 

@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.extern.slf4j.Slf4j;
 import org.example.entity.RestBean;
+import org.example.entity.dto.charts.DoUndo;
 import org.example.entity.vo.request.SubmitRecordVO;
 import org.example.entity.vo.request.TaskCreateVO;
 import org.example.entity.vo.request.TaskUpdateVO;
@@ -19,6 +20,7 @@ import org.example.utils.ControllerUtil;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -83,5 +85,9 @@ public class TaskController {
     public RestBean<Void> updateStudentRecord(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id,
                                               @RequestBody @Valid StudentRecordSavaVO vo){
         return controllerUtil.messageHandle(() -> taskService.updateStudentRecord(id, vo));
+    }
+    @GetMapping("/do-undo")
+    public RestBean<Map<String, List<DoUndo>>> doUndo(@RequestParam String taskId){
+        return RestBean.success(taskService.doUndo(taskId));
     }
 }

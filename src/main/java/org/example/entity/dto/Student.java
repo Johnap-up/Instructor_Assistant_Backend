@@ -16,6 +16,8 @@ import org.example.entity.reflection.BaseData;
 public class Student implements BaseData {
     @TableId(type = IdType.INPUT)
     private String sid;
+    @TableField("id")
+    private int id;
     @TableField("name")
     private String name;
     @TableField("gender")

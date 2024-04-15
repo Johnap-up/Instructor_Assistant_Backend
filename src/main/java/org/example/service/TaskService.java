@@ -3,6 +3,7 @@ package org.example.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.example.entity.dto.Task;
 import org.example.entity.dto.TaskType;
+import org.example.entity.dto.charts.DoUndo;
 import org.example.entity.vo.request.SubmitRecordVO;
 import org.example.entity.vo.request.TaskCreateVO;
 import org.example.entity.vo.request.TaskUpdateVO;
@@ -12,6 +13,7 @@ import org.example.entity.vo.response.TaskDetailVO;
 import org.example.entity.vo.response.TaskPreviewVO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface TaskService extends IService<Task> {
     List<TaskType> listTypes();
@@ -24,4 +26,5 @@ public interface TaskService extends IService<Task> {
     List<SubmitRecordShowVO> submitRecordShow(String taskId, int page);
     SubmitRecordShowVO getStudentRecord(String taskId, int id);
     String updateStudentRecord(int id, StudentRecordSavaVO vo);
+    Map<String, List<DoUndo>> doUndo(String taskId);
 }

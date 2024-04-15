@@ -4,6 +4,7 @@ import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import org.example.entity.RestBean;
+import org.example.entity.dto.charts.CRRDoUndo;
 import org.example.entity.vo.request.CRRSubmitVO;
 import org.example.entity.vo.request.saveDataVO.CRRSaveVO;
 import org.example.entity.vo.response.CheckRoomRecordShowVO;
@@ -13,6 +14,7 @@ import org.example.utils.ControllerUtil;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/room")
@@ -42,5 +44,9 @@ public class CheckRoomRecordController {
     public RestBean<List<CheckRoomRecordShowVO>> records(@RequestParam @Min(0) String taskId,
                                                          @RequestParam @Min(0) int page){
         return RestBean.success(checkRoomRecordService.getAllRecords(taskId, page + 1));
+    }
+    @GetMapping("/do-undo")
+    public RestBean<Map<String, List<CRRDoUndo>>> doUndo(@RequestParam String taskId){
+        return RestBean.success(checkRoomRecordService.getDoUndo(taskId));
     }
 }

@@ -19,8 +19,8 @@ public class StudentTaskRecord {
     private String taskId;
     @TableField("isDone")
     private boolean isDone;
-    @TableField("isOK")
-    private boolean isOK;
+    @TableField("score")
+    private int score;
     @TableField("submitTime")
     private Date submitTime;
     @TableField("content")
