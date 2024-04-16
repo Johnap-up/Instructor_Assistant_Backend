@@ -54,16 +54,22 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     }
     @Override
     public Map<String, String> getStudentDoneRate(int year, int semester, String tid, int type) {       //即使没提交也能有数据
-        List<StudentTaskRate> list = studentMapper.getFinishRate(year, semester, tid, type);
-        int totalNum = studentMapper.getTotalNum(year, semester, tid, type);
-        List<String> sidList = studentMapper.selectAllSid();
-        Map<String, String> map2 = list.stream().collect(Collectors.toMap(
-                StudentTaskRate::getSid,
-                studentTaskRate -> studentTaskRate.getDoneNum() + "/" + studentTaskRate.getTotalNum()
-        ));
-        Map<String, String> map = sidList.stream().collect(Collectors.toMap(key->key, value->"0/" + totalNum));
-        map.putAll(map2);
-        return map;
+        if(type !=2 ){
+            List<StudentTaskRate> list = studentMapper.getFinishRate(year, semester, tid, type);
+            int totalNum = studentMapper.getTotalNum(year, semester, tid, type);
+            return list.stream().collect(Collectors.toMap(
+                    StudentTaskRate::getSid,
+                    studentTaskRate -> studentTaskRate.getDoneNum() + "/" + totalNum
+            ));
+        }else {
+            return studentMapper.getType2Rate(year, semester, tid).stream()
+                    .collect(Collectors.toMap(StudentTaskRate::getSid, val -> val.getDoneNum() + "/" + val.getTotalNum()));
+        }
+
+//        List<String> sidList = studentMapper.selectAllSid();
+//        Map<String, String> map = sidList.stream().collect(Collectors.toMap(key->key, value->"0/" + totalNum));
+//        map.putAll(map2);
+//        return map;
     }
     @Override
     public Integer deleteStudent(List<String> deleteList) {

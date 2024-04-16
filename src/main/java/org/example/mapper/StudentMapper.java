@@ -1,9 +1,7 @@
 package org.example.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 import org.example.entity.dto.Student;
 import org.example.entity.dto.charts.DoUndo;
 import org.example.entity.vo.response.StudentTaskRate;
@@ -28,6 +26,13 @@ public interface StudentMapper extends BaseMapper<Student> {
             "where t.taskId = str.taskId and t.year = #{year} and t.semester = #{semester} and t.tid = #{tid} and t.type = #{type} group by str.sid")
     List<StudentTaskRate> getFinishRate(@Param("year") int year, @Param("semester") int semester, @Param("tid") String tid, @Param("type") int type);
 
+    @Select("select s.sid, sum(crr.isDone) doneNum, max(t.sequence) totalNum from check_room_record crr, task t, student s where crr.dormitory = s.dormitory and crr.room = s.room and crr.taskId = t.taskId and t.tid = #{tid}  and t.year = #{year} and t.semester = #{semester} group by s.sid")
+//    @Results({
+//            @Result(column = "sid", property = "sid"),
+//            @Result(column = "done", property = "doneNum"),
+//            @Result(column = "total", property = "totalNum")
+//    })
+    List<StudentTaskRate> getType2Rate(@Param("year") int year, @Param("semester") int semester, @Param("tid") String tid);
     @Select("select MAX(t.sequence) as 'totalNum'" +
             "from task t " +
             "where t.year = #{year} and t.semester = #{semester} and t.tid = #{tid} and t.type = #{type}")
