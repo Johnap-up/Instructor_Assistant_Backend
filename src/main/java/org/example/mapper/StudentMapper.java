@@ -4,7 +4,10 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.*;
 import org.example.entity.dto.Student;
 import org.example.entity.dto.charts.DoUndo;
+import org.example.entity.dto.charts.Gender;
+import org.example.entity.dto.charts.LearningClassroom;
 import org.example.entity.vo.response.StudentTaskRate;
+import org.example.entity.dto.charts.Dormitory;
 
 import java.util.List;
 
@@ -56,7 +59,17 @@ public interface StudentMapper extends BaseMapper<Student> {
     List<DoUndo> selectDoUndo(@Param("taskId") String taskId, @Param("isDone") boolean isDone);
 
 
-
+    /*图表使用*/
+    @Select("select dormitory as name, count(sid) as value from student group by dormitory")
+    List<Dormitory> getDormitory();
+    @Select("select classroom, count(gender) as man, sum(gender) as woman from student group by classroom;")
+    List<Gender> getGender();
+    @Select("select s.classroom, sum(str.isDone) as done, count(str.isDone) as total from student s " +
+            "left join student_task_record str on s.sid = str.sid where str.taskId in (${taskId}) group by classroom")
+    List<LearningClassroom> getLearningClassroom(@Param("taskId") String taskId);
+    @Select("select s.classroom, sum(str.isDone) as done, count(str.isDone) as total from student s " +
+            "left join student_task_record str on s.sid = str.sid where str.taskId = #{taskId} group by classroom")
+    List<LearningClassroom> getLatestRate(@Param("taskId") String taskId);
 }
 
 

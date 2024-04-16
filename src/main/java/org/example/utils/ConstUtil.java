@@ -16,7 +16,7 @@ public class ConstUtil {
     //限流的常数
     public static final int FLOW_LIMIT_LISTEN_TIME = 3;     //s
     public static final int FLOW_LIMIT_CLOSE_TIME = 30;     //s
-    public static final int FLOW_LIMIT_THRESHOLD_COUNT = 20;    //次
+    public static final int FLOW_LIMIT_THRESHOLD_COUNT = 50;    //次
     public static final String FLOW_LIMIT_COUNT = "flow:limit:count:";
     public static final String FLOW_LIMIT_BLOCK = "flow:limit:BLOCK:";
 

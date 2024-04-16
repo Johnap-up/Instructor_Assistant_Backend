@@ -45,4 +45,7 @@ public interface TaskMapper extends BaseMapper<Task> {
             @Result(column = "end_time", property = "endTime")
     })
     List<Task> listAll(@Param("tid") String tid, @Param("start") int start);
+
+    @Select("select taskId from task where task.type = 1 order by task.sequence desc limit #{num}")
+    List<String> getLatestTask(@Param("num") Integer num);
 }
