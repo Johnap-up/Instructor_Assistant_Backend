@@ -19,6 +19,7 @@ import org.example.entity.vo.response.SubmitRecordShowVO;
 import org.example.entity.vo.response.TaskDetailVO;
 import org.example.entity.vo.response.TaskPreviewVO;
 import org.example.mapper.*;
+import org.example.service.NotificationService;
 import org.example.service.TaskService;
 import org.example.utils.CacheUtil;
 import org.example.utils.ConstUtil;
@@ -48,6 +49,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     StudentTaskRecordMapper studentTaskRecordMapper;
     @Resource
     CheckRoomRecordMapper checkRoomRecordMapper;
+    @Resource
+    NotificationService notificationService;
 
     private Set<Integer> types = null;
     @PostConstruct
@@ -84,6 +87,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         task.setSemester(aidYearSemester.getSemester());
         task.setYear(aidYearSemester.getYear());
         if (taskMapper.insert(task) > 0) {
+            notificationService.addNotification(tid, "您有新的任务待提交", task.getTitle() != null ? task.getTitle() : "空空", "success", "/index/task/task-detail/" + task.getTaskId());
             //要修改缓存
             cacheUtil.deleteCache(ConstUtil.TASK_PREVIEW_CACHE + "*");
             return null;
