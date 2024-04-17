@@ -15,6 +15,7 @@ import java.util.Map;
 public class MailQueueListener {
     @Resource
     JavaMailSender sender;
+
     @Value("${spring.mail.username}")
     String username;
 

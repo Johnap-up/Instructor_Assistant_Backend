@@ -1,0 +1,43 @@
+server:
+  port: 9856
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: false #数据库下划线自动转驼峰标示关闭
+  mapper-locations: classpath:org/example/mapper/xml/*.xml
+spring:
+  security:
+    filter:
+      order: -100
+    jwt:
+      key: abcdefg
+      expire: 7
+  servlet:
+    multipart:
+      max-file-size: 3MB
+      max-request-size: 20MB
+  datasource:
+    url: jdbc:mysql://localhost:3306/instructor_assistant
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  mail:
+    host: smtp.163.com
+    username: tukumij@163.com
+    password: DJLANCLVJRYTODAK
+  rabbitmq:
+    addresses: localhost
+    username: admin
+    password: admin
+    virtual-host: /instructor_assistant
+  minio:
+    endpoint: 'http://47.101.203.178:9000'
+    username: 'minio'
+    password: 'password'
+  weather:
+    key: cc48d7d106ee43b798961bbbfc07c236
+
+#  data:
+#    redis:
+#      host: localhost
+#      port: 6379
+#      database: 0
