@@ -33,6 +33,8 @@ spring:
     endpoint: 'http://47.101.203.178:9000'
     username: 'minio'
     password: 'password'
+  weather:
+    key: cc48d7d106ee43b798961bbbfc07c236
 
 #  data:
 #    redis:

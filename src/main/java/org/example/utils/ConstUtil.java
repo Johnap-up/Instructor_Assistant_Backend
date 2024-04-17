@@ -44,4 +44,7 @@ public class ConstUtil {
     public static final int TASK_PREVIEW_CONTENT_LENGTH = 300;
     public static final String TASK_PREVIEW_CACHE = "task:preview:cache:";
     public static final int TASK_PREVIEW_CACHE_EXPIRE = 60;         //单位s
+
+    //首页天气
+    public static final String FORUM_WEATHER_CACHE = "weather:cache:";
 }
