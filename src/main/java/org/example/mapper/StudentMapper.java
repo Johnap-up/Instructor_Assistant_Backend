@@ -12,7 +12,7 @@ import org.example.entity.dto.charts.Dormitory;
 import java.util.List;
 
 @Mapper
-public interface StudentMapper extends BaseMapper<Student> {
+public interface StudentMapper extends BaseMapper<Student>{
     //学生信息部分
     @Select("select * from student;")
     List<Student> selectAllStudent();

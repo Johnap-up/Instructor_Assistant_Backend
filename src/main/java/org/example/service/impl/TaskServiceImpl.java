@@ -19,6 +19,7 @@ import org.example.entity.vo.response.SubmitRecordShowVO;
 import org.example.entity.vo.response.TaskDetailVO;
 import org.example.entity.vo.response.TaskPreviewVO;
 import org.example.mapper.*;
+import org.example.service.LogService;
 import org.example.service.NotificationService;
 import org.example.service.TaskService;
 import org.example.utils.CacheUtil;
@@ -51,6 +52,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     CheckRoomRecordMapper checkRoomRecordMapper;
     @Resource
     NotificationService notificationService;
+    @Resource
+    LogService logService;
 
     private Set<Integer> types = null;
     @PostConstruct
@@ -87,6 +90,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         task.setSemester(aidYearSemester.getSemester());
         task.setYear(aidYearSemester.getYear());
         if (taskMapper.insert(task) > 0) {
+            logService.insertLog(uid, "创建任务，标题：" + task.getTitle() + "，taskId：" + task.getTaskId());
             notificationService.addNotification(tid, "您有新的任务待提交", task.getTitle() != null ? task.getTitle() : "空空", "success", "/index/task/task-detail/" + task.getTaskId());
             //要修改缓存
             cacheUtil.deleteCache(ConstUtil.TASK_PREVIEW_CACHE + "*");
@@ -232,6 +236,23 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
                 .set("content", taskUpdateVO.getContent().toString())
                 .set("type", taskUpdateVO.getType())
         );
+        logService.insertLog(id, "修改任务，标题：" + taskUpdateVO.getTitle() + "，taskId" + taskUpdateVO.getTaskId());
+        return null;
+    }
+
+    @Override
+    public String deleteTask(int id, String taskId) {
+        String tid = accountMapper.getTidById(id);
+        Task task = taskMapper.selectById(taskId);
+        if (task == null)
+            return "任务不存在或已被删除";
+        else {
+            if (!task.getTid().equals(tid))
+                return "您不是该任务的发布者，无法删除";
+            baseMapper.deleteById(taskId);
+            cacheUtil.deleteCache(ConstUtil.TASK_PREVIEW_CACHE + "*");
+            logService.insertLog(id, "删除任务，标题：" + task.getTitle() + "，taskId" + task.getTaskId());
+        }
         return null;
     }
 
@@ -241,6 +262,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             return "内容过长，发送失败";
         Boolean flag = studentTaskRecordMapper.updateSTRByTaskId(vo.getTaskId(),
                 studentMapper.selectStudentById(id).getSid(), true, null, new Date(), vo.getContent(), vo.getTitle());
+        logService.insertLog(id, "提交作业");
         return flag ? null : "提交失败，请联系管理员";
     }
 
@@ -288,6 +310,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
                 .set("content", vo.getContent())
                 .set("title", vo.getTitle())
         ) > 0;
+        logService.insertLog(id, "修改作业" + vo.getTaskId() +"内容");
         return flag ? null : "更新失败";
     }
 

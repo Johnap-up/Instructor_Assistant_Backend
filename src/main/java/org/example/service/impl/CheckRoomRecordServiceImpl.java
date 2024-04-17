@@ -15,6 +15,7 @@ import org.example.entity.vo.response.CheckRoomRecordShowVO;
 import org.example.mapper.CheckRoomRecordMapper;
 import org.example.mapper.StudentMapper;
 import org.example.service.CheckRoomRecordService;
+import org.example.service.LogService;
 import org.example.utils.ConstUtil;
 import org.example.utils.ServiceImplUtil;
 import org.springframework.beans.BeanUtils;
@@ -31,6 +32,8 @@ public class CheckRoomRecordServiceImpl extends ServiceImpl<CheckRoomRecordMappe
     StudentMapper studentMapper;
     @Resource
     CheckRoomRecordMapper checkRoomRecordMapper;
+    @Resource
+    LogService logService;
     @Override
     public CheckRoomRecordShowVO getRecord(String taskId, int id) {
         Student student = studentMapper.selectStudentById(id);
@@ -67,6 +70,7 @@ public class CheckRoomRecordServiceImpl extends ServiceImpl<CheckRoomRecordMappe
         if (temp != null)
             return "已提交过该任务的记录";
         boolean flag = checkRoomRecordMapper.updateCRR(vo.getTaskId(), dormitory, room, new Date(), vo.getContent(), vo.getTitle(), true);
+        logService.insertLog(id, "提交作业");
 //        CheckRoomRecord dto = new CheckRoomRecord(null, dormitory, room, vo.getTaskId(), new Date(), vo.getContent(), vo.getTitle(), true);
         return flag ? null : "提交失败, 请联系管理员";
     }
@@ -84,6 +88,7 @@ public class CheckRoomRecordServiceImpl extends ServiceImpl<CheckRoomRecordMappe
                 .eq("room", room)
                 .set("content", vo.getContent())
                 .set("title", vo.getTitle())) > 0;
+        logService.insertLog(id, "更新作业内容");
         return flag ? null : "更新失败";
     }
 

@@ -15,9 +15,9 @@ public interface StudentService extends IService<Student>{
 
     List<StudentCrudVO> getSelectStudents(String name, Integer classroom);
     Map<String,String> getStudentDoneRate(int year, int semester, String tid, int type);
-    Integer deleteStudent(List<String> deleteList);
-    String saveStudent(StudentSavaVO studentSavaVO);
-    String insertStudent(StudentInsertVO vo);
+    Integer deleteStudent(List<String> deleteList, int id);
+    String saveStudent(StudentSavaVO studentSavaVO, int id);
+    String insertStudent(StudentInsertVO vo, int id);
     StudentDetailVO getStudentDetail(String sid);
     boolean studentSettingSave(int id, DetailsStudentSaveVO vo);
 }

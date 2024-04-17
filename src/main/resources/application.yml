@@ -3,6 +3,7 @@ server:
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: false #数据库下划线自动转驼峰标示关闭
+  mapper-locations: classpath:org/example/mapper/xml/*.xml
 spring:
   security:
     filter:

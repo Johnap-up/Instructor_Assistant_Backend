@@ -50,18 +50,18 @@ public class StudentController {
         return RestBean.success(new StudentAllInfoVO(studentService.getSelectStudents(name, classroom), map));
     }
     @PostMapping("/delete-student")
-    public RestBean<String> deleteStudent(@RequestBody List<String> deleteList) {
-        int i = studentService.deleteStudent(deleteList);
+    public RestBean<String> deleteStudent(@RequestBody List<String> deleteList, @RequestAttribute(ConstUtil.ATTR_USER_ID) int id) {
+        int i = studentService.deleteStudent(deleteList, id);
         return RestBean.success("成功删除" + i + "个学生");
     }
     @PostMapping("/save-student")           //教师端修改学生信息
-    public RestBean<String> saveStudent(@RequestBody StudentSavaVO studentSavaVO) {
-        String result =studentService.saveStudent(studentSavaVO);
+    public RestBean<String> saveStudent(@RequestBody StudentSavaVO studentSavaVO, @RequestAttribute(ConstUtil.ATTR_USER_ID) int id) {
+        String result =studentService.saveStudent(studentSavaVO, id);
         return result == null ? RestBean.success("修改成功") : RestBean.failure(400, result);
     }
     @PostMapping("/insert-student")
-    public RestBean<String> insertStudent(@RequestBody @Valid StudentInsertVO vo) {
-        String result = studentService.insertStudent(vo);
+    public RestBean<String> insertStudent(@RequestBody @Valid StudentInsertVO vo, @RequestAttribute(ConstUtil.ATTR_USER_ID) int id) {
+        String result = studentService.insertStudent(vo, id);
         return result == null ? RestBean.success("添加成功") : RestBean.failure(400, result);
     }
     @GetMapping("/student-detail")

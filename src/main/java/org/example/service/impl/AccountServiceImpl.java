@@ -7,6 +7,7 @@ import org.example.entity.dto.Account;
 import org.example.entity.vo.request.*;
 import org.example.mapper.AccountMapper;
 import org.example.service.AccountService;
+import org.example.service.LogService;
 import org.example.utils.ConstUtil;
 import org.example.utils.FlowUtil;
 import org.example.utils.StringForRedisUtil;
@@ -36,6 +37,8 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     PasswordEncoder encoder;
     @Resource
     AccountMapper accountMapper;
+    @Resource
+    LogService logService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {   //
@@ -154,6 +157,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         if (!code.equals(modifyEmailVO.getCode())) return "验证码错误";
         stringRedisTemplate.delete(key);        //验证成功后删除验证码
         this.update().eq("id", id).set("email", email).update();
+        logService.insertLog(id, "修改邮箱");
         return null;
     }
     @Override
@@ -162,6 +166,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         if (!encoder.matches(changePasswordVO.getPassword(), password))
             return "原密码错误，请重新输入";
         boolean result = this.update().eq("id",id).set("password", encoder.encode(changePasswordVO.getNew_password())).update();
+        logService.insertLog(id, "修改密码");
         return result ? null : "内部错误，请联系管理员";
     }
 

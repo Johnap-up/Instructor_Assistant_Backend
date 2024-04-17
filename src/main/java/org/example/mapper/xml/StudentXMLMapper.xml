@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.excel.StudentXMLMapper">
+    <insert id="batchInsert" parameterType="list">
+        insert into student
+        (sid, name, gender, dormitory, room, classroom, qq, phone, institute, grade, tid)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.sid},
+            #{item.name},
+            #{item.gender},
+            #{item.dormitory},
+            #{item.room},
+            #{item.classroom},
+            #{item.qq},
+            #{item.phone},
+            #{item.institute},
+            #{item.grade},
+            #{item.tid}
+            )
+        </foreach>
+    </insert>
+</mapper>

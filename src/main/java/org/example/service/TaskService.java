@@ -22,6 +22,7 @@ public interface TaskService extends IService<Task> {
     List<TaskPreviewVO> listAllTask(int page, int id, String role);
     TaskDetailVO getTaskDetail(String taskId);
     String updateTask(int id, TaskUpdateVO taskUpdateVO);
+    String deleteTask(int id, String taskId);
     String createSubmitRecord(int id, SubmitRecordVO submitRecordVO);
     List<SubmitRecordShowVO> submitRecordShow(String taskId, int page);
     SubmitRecordShowVO getStudentRecord(String taskId, int id);

@@ -71,6 +71,11 @@ public class TaskController {
                                        @RequestAttribute(ConstUtil.ATTR_USER_ID) int id){
         return controllerUtil.messageHandle(() -> taskService.createSubmitRecord(id, submitRecordVO));
     }
+    @GetMapping("/delete-task")
+    public RestBean<Void> deleteTask(@RequestAttribute(ConstUtil.ATTR_USER_ID) int id,
+                                     @RequestParam String taskId){
+        return controllerUtil.messageHandle(() -> taskService.deleteTask(id, taskId));
+    }
     @GetMapping("/records")
     public RestBean<List<SubmitRecordShowVO>> records(@RequestParam @Min(0) String taskId,
                                                       @RequestParam @Min(0) int page){

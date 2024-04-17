@@ -8,13 +8,14 @@ import org.example.entity.dto.Student;
 import org.example.entity.vo.request.StudentInsertVO;
 import org.example.entity.vo.request.saveDataVO.DetailsStudentSaveVO;
 import org.example.entity.vo.request.saveDataVO.StudentSavaVO;
+import org.example.entity.vo.response.StudentCrudVO;
 import org.example.entity.vo.response.StudentDetailVO;
 import org.example.entity.vo.response.StudentTaskRate;
-import org.example.entity.vo.response.StudentCrudVO;
 import org.example.mapper.AccountDetailsMapper;
 import org.example.mapper.AccountMapper;
 import org.example.mapper.StudentMapper;
 import org.example.service.AccountService;
+import org.example.service.LogService;
 import org.example.service.StudentService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,8 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     AccountService accountService;
     @Resource
     AccountDetailsMapper accountDetailsMapper;
+    @Resource
+    LogService logService;
     @Override
     public List<StudentCrudVO> getSelectStudents(String name, Integer classroom) {
         System.out.println(name + ", class: "+classroom);
@@ -72,11 +75,12 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 //        return map;
     }
     @Override
-    public Integer deleteStudent(List<String> deleteList) {
+    public Integer deleteStudent(List<String> deleteList, int id) {
+        logService.insertLog(id, "批量删除" + deleteList.size() + "个学生");
         return studentMapper.deleteBatchIds(deleteList);
     }
     @Override
-    public synchronized String saveStudent(StudentSavaVO studentSavaVO) {
+    public synchronized String saveStudent(StudentSavaVO studentSavaVO, int id) {
         String sid = studentSavaVO.getSid();
         String oldSid = studentSavaVO.getOldSid();
         Student student = studentMapper.selectById(sid);
@@ -85,11 +89,13 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         if (student == null){           //修改sid后没有发生冲突
             this.update().eq("sid", oldSid).set("sid", sid).update();
         }
-        this.updateById(studentSavaVO.asViewObject(Student.class));
+        int tempId = studentMapper.selectById(sid).getId();
+        this.updateById(studentSavaVO.asViewObject(Student.class, stu -> stu.setId(tempId)));
+        logService.insertLog(id, "修改原学生" + oldSid + "的信息");
         return null;
     }
     @Override
-    public String insertStudent(StudentInsertVO vo) {
+    public String insertStudent(StudentInsertVO vo, int id) {
         String sid = vo.getSid();
         Student s = studentMapper.selectById(sid);
         if (s != null)
@@ -97,6 +103,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         Student student = new Student();
         BeanUtils.copyProperties(vo, student);
         this.save(student);
+        logService.insertLog(id, "添加学生");
         return null;
     }
 
@@ -118,4 +125,5 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
                 .set("phone", vo.getPhone())
                 .set("qq", vo.getQq()).update();
     }
+
 }
