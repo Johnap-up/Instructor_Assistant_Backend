@@ -23,4 +23,5 @@ public class Notification implements BaseData {
     Date time;
     String type;
     String url;
+    String taskId;
 }

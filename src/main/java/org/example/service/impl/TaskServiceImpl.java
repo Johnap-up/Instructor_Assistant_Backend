@@ -91,7 +91,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         task.setYear(aidYearSemester.getYear());
         if (taskMapper.insert(task) > 0) {
             logService.insertLog(uid, "创建任务，标题：" + task.getTitle() + "，taskId：" + task.getTaskId());
-            notificationService.addNotification(tid, "您有新的任务待提交", task.getTitle() != null ? task.getTitle() : "空空", "success", "/index/task/task-detail/" + task.getTaskId());
+            notificationService.addNotification(tid, "您有新的任务待提交", task.getTitle() != null ? task.getTitle() : "空空", "success", "/index/task/task-detail/" + task.getTaskId(), task.getTaskId());
             //要修改缓存
             cacheUtil.deleteCache(ConstUtil.TASK_PREVIEW_CACHE + "*");
             return null;

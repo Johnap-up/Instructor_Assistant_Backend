@@ -32,7 +32,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     }
 
     @Override
-    public void addNotification(String tid, String title, String content, String type, String url) {
+    public void addNotification(String tid, String title, String content, String type, String url, String taskId) {
         Notification no = new Notification();
         no.setTid(tid);
         no.setTitle(title);
@@ -40,6 +40,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         no.setContent(content);
         no.setUrl(url);
         no.setTime(new Date());
+        no.setTaskId(taskId);
         this.save(no);
     }
 }
